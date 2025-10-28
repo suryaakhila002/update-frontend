@@ -9,10 +9,10 @@ import {getLoggedInUser} from '../../helpers/authUtils';
 import SweetAlert from 'react-bootstrap-sweetalert';
 import {ServerApi} from '../../utils/ServerApi';
 import {Radio} from 'antd';
-import {Button} from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
+import {Button} from '@mui/material';
+import Alert from '@mui/material/Alert';
 import AddIcon from '@material-ui/icons/Add';
-import {Select as MSelect, MenuItem, FormControl} from '@material-ui/core';
+import {Select as MSelect, MenuItem, FormControl} from '@mui/material';
 import axios from 'axios';
 
 const LANGUAGES = [

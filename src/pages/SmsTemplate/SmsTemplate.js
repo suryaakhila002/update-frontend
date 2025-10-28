@@ -10,8 +10,8 @@ import {ServerApi} from '../../utils/ServerApi';
 import { MDBDataTable } from 'mdbreact';
 import {Tag} from 'antd';
 import {getLoggedInUser} from '../../helpers/authUtils';
-import Popover from '@material-ui/core/Popover';
-import Typography from '@material-ui/core/Typography';
+import Popover from '@mui/material/Popover';
+import Typography from '@mui/material/Typography';
 import { AvForm, AvField } from 'availity-reactstrap-validation';
 
 class SmsTemplate extends Component {

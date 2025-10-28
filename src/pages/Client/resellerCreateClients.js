@@ -12,7 +12,7 @@ import SweetAlert from 'react-bootstrap-sweetalert';
 import {ServerApi} from '../../utils/ServerApi';
 
 
-import {Button} from '@material-ui/core';
+import {Button} from '@mui/material';
 
 const ACCOUNT_TYPE = [
             { label: "Prepaid", value: "PREPAID", isOptionSelected: true },

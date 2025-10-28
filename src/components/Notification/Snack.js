@@ -1,9 +1,9 @@
 import React from 'react';
-import Snackbar from '@material-ui/core/Snackbar';
-import IconButton from '@material-ui/core/IconButton';
+import Snackbar from '@mui/material/Snackbar';
+import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import {useSelector, useDispatch} from 'react-redux';
-import MuiAlert from '@material-ui/lab/Alert';
+import MuiAlert from '@mui/material/Alert';
 
 export default function SimpleSnackbar() {
   const dispatch = useDispatch();

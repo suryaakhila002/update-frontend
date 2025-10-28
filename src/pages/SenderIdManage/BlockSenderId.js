@@ -13,7 +13,7 @@ import {getLoggedInUser} from '../../helpers/authUtils';
 import LoadingBar from 'react-top-loading-bar';
 import { MDBDataTable } from 'mdbreact';
 import Dropzone from 'react-dropzone';
-// import {TextField} from '@material-ui/core';
+// import {TextField} from '@mui/material';
 
 // const CATEGORY = [
 //     {

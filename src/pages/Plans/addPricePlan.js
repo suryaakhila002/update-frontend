@@ -7,7 +7,7 @@ import { AvForm, AvField } from 'availity-reactstrap-validation';
 import { connect } from 'react-redux';
 import SweetAlert from 'react-bootstrap-sweetalert';
 import {ServerApi} from '../../utils/ServerApi';
-import {Button} from '@material-ui/core';
+import {Button} from '@mui/material';
 import { getLoggedInUser } from '../../helpers/authUtils';
 
 // const AUTH_TYPE = [

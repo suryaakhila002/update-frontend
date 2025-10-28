@@ -12,7 +12,7 @@ import SweetAlert from 'react-bootstrap-sweetalert';
 import {ServerApi} from '../../utils/ServerApi';
 
 
-import {Button} from '@material-ui/core';
+import {Button} from '@mui/material';
 
 const SENDER_ID_TYPE = [
             { label: "Select Sender Id Type", value: "0", isOptionSelected: true },

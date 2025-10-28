@@ -6,7 +6,7 @@ import '../../utils/Languages.css'
 import axios from 'axios';
 import { Row, Col} from 'reactstrap';
 import {useDispatch} from 'react-redux';
-import {Select, MenuItem, FormControl} from '@material-ui/core';
+import {Select, MenuItem, FormControl} from '@mui/material';
 import UrlShortner from '../UrlShortner';
 
 const LANGUAGES = [

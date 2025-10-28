@@ -9,8 +9,8 @@ import {getLoggedInUser} from '../../helpers/authUtils';
 import SweetAlert from 'react-bootstrap-sweetalert';
 import {ServerApi} from '../../utils/ServerApi';
 import {Radio} from 'antd';
-import {Button} from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
+import {Button} from '@mui/material';
+import Alert from '@mui/material/Alert';
 import SaveIcon from '@material-ui/icons/Save';
 
 const CONTENT_TYPE = [

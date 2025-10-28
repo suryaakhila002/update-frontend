@@ -10,8 +10,8 @@ import { connect } from 'react-redux';
 import logoLight from "../../images/img/admin logo.png";
 import logoSmall from "../../images/img/admin logo.png";
 import {Tag} from 'antd';
-import Alert from '@material-ui/lab/Alert';
-import Button from '@material-ui/core/Button';
+import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 
 class Topbar extends Component {
 

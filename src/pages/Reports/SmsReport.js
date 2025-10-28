@@ -8,8 +8,8 @@ import {Tag} from 'antd';
 import {ServerApi} from '../../utils/ServerApi';
 // import {Empty} from 'antd';
 import ReportsLoading from '../../components/Loading/ReportsLoading';
-import Popover from '@material-ui/core/Popover';
-import Typography from '@material-ui/core/Typography';
+import Popover from '@mui/material/Popover';
+import Typography from '@mui/material/Typography';
 import {getLoggedInUser} from '../../helpers/authUtils';
 
 

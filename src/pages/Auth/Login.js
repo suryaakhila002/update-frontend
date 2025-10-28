@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { Alert, Col, Row, Card } from 'reactstrap';
 import { Link, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { apiError, loginUserSuccessful, updateSmsBalance } from '../../store/actions';
+import { loginUserSuccessful, updateSmsBalance } from '../../store/actions';
+import { apiError } from '../../store/auth/login/actions';
 import { AvForm, AvField } from 'availity-reactstrap-validation';
 import { Button } from 'antd';
 import Settings from '../../utils/ServerSettings'

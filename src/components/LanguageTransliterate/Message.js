@@ -7,7 +7,7 @@ import '../../utils/Languages.css'
 // import googleTransliterate from 'google-input-tool';
 import axios from 'axios';
 import {useDispatch} from 'react-redux';
-import {Select, MenuItem, FormControl} from '@material-ui/core';
+import {Select, MenuItem, FormControl} from '@mui/material';
 import UrlShortner from '../UrlShortner';
 
 const LANGUAGES = [

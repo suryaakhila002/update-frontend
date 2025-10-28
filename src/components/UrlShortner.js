@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Button, Label, ModalBody, Modal } from 'reactstrap';
-import Alert from '@material-ui/lab/Alert';
-import MButton from '@material-ui/core/Button';
-import {Paper, Tabs, Tab} from '@material-ui/core';
+import Alert from '@mui/material/Alert';
+import MButton from '@mui/material/Button';
+import {Paper, Tabs, Tab} from '@mui/material';
 import axios from 'axios';
 
 class UrlShortner extends Component {

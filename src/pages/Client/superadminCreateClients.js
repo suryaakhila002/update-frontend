@@ -9,7 +9,7 @@ import Select from 'react-select';
 import SweetAlert from 'react-bootstrap-sweetalert';
 // import Dropzone from 'react-dropzone';
 import {ServerApi} from '../../utils/ServerApi';
-import {Button} from '@material-ui/core';
+import {Button} from '@mui/material';
 import {getLoggedInUser} from '../../helpers/authUtils';
 import AddIcon from '@material-ui/icons/Add';
 

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Col, Card, CardBody } from 'reactstrap';
 import { withRouter } from 'react-router-dom';
-import Popover from '@material-ui/core/Popover';
-import Typography from '@material-ui/core/Typography';
+import Popover from '@mui/material/Popover';
+import Typography from '@mui/material/Typography';
 
 class MyTemplates extends Component {
     constructor(props) {

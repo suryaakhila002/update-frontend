@@ -8,7 +8,7 @@ import SweetAlert from 'react-bootstrap-sweetalert';
 import {ServerApi} from '../../utils/ServerApi';
 import { Empty, Tag } from 'antd';
 import { getLoggedInUser } from '../../helpers/authUtils';
-import {Button} from '@material-ui/core';
+import {Button} from '@mui/material';
 
 class ViewFixedPlan extends Component {
     constructor(props) {

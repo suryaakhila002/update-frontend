@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 // import {getLoggedInUser} from '../../helpers/authUtils';
 import SweetAlert from 'react-bootstrap-sweetalert';
 import {ServerApi} from '../../utils/ServerApi';
-import {Button} from '@material-ui/core';
+import {Button} from '@mui/material';
 import ContactsLoading from '../../components/Loading/ContactsLoading';        
 
 class AdminCreateClients extends Component {

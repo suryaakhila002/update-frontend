@@ -10,7 +10,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import Select from 'react-select';
 import {ServerApi} from '../../utils/ServerApi';
 import Message from '../../components/LanguageTransliterate/Message'
-import SweetAlert from 'react-bootstrap-sweetalert';
 import {Radio} from 'antd'
 import {getLoggedInUser} from '../../helpers/authUtils';
 import ContactsLoading from '../../components/Loading/ContactsLoading';
@@ -19,6 +18,15 @@ import NoBalance from '../../components/Loading/NoBalance';
 import MyTemplates from '../../components/MyTemplates';
 import TemplateMessageBox from '../../components/LanguageTransliterate/TemplateMessageBox';
 import SmsSending from '../../components/Loading/SmsSending';
+
+// --- KEY CHANGES (IMPORTS) ---
+// import SweetAlert from 'react-bootstrap-sweetalert'; // REMOVED: Outdated
+import Swal from 'sweetalert2'; // ADDED: Modern Alert Library
+import withReactContent from 'sweetalert2-react-content'; // ADDED: React wrapper
+// --- END KEY CHANGES ---
+
+// Initialize SweetAlert2
+const MySwal = withReactContent(Swal);
 
 class SendGroupSms extends Component {
     constructor(props) {
@@ -32,9 +40,14 @@ class SendGroupSms extends Component {
             cSelected: [],
             savedMessages: [],
             message: '',
-            modal_type: 'success',
-            success_msg: false,
-            success_message: '',
+            
+            // --- KEY CHANGE (STATE) ---
+            // These are no longer needed, as SweetAlert2 is called imperatively
+            // modal_type: 'success',
+            // success_msg: false,
+            // success_message: '',
+            // --- END KEY CHANGE ---
+
             groupLoading: false,
             remaningMessageCharacters: 160,
             totalMobileNumbers: 0,
@@ -50,6 +63,7 @@ class SendGroupSms extends Component {
             templates: [],
             default_date: new Date(), default: false, start_date: new Date(), monthDate: new Date(), yearDate: new Date(), end_date: new Date(), date: new Date(),
         };
+        // ... (constructor bindings remain unchanged)
         this.handleDefault = this.handleDefault.bind(this);
         this.loadRoutes = this.loadRoutes.bind(this);
         this.loadGroups = this.loadGroups.bind(this);
@@ -66,7 +80,6 @@ class SendGroupSms extends Component {
         this.saveDraft = this.saveDraft.bind(this);
         this.loadTemplates = this.loadTemplates.bind(this);
         this.pickedTemplate = this.pickedTemplate.bind(this);
-        
     }
 
     componentDidMount() {
@@ -78,6 +91,7 @@ class SendGroupSms extends Component {
         this.loadRoutes();
     }
 
+    // ... (all handle methods remain unchanged)
     //Select 
     handleSelectSenderId = (selectedSenderId) => {
         this.loadTemplates(selectedSenderId.value);
@@ -125,7 +139,8 @@ class SendGroupSms extends Component {
           [name]: value
         });
     };
-
+    
+    // ... (all load methods remain unchanged)
     loadSenderIds(){
         if (getLoggedInUser().templateBased) {
             this.setState({ templateBased: true })
@@ -156,21 +171,6 @@ class SendGroupSms extends Component {
         }))
 
         this.setState({smsGateways: arr})
-
-        // ServerApi().get('routes')
-        //   .then(res => {
-        //     if (res.data === undefined) {
-        //         return false;
-        //     } 
-
-        //     var arr = res.data.map(obj => ({
-        //         label: obj.routeName,
-        //         value: obj.id,
-        //     }))
-
-        //     this.setState({smsGateways: arr})
-        // })
-        // .catch(error => console.log('error', error));
     }
 
     loadSavedMessages() {
@@ -242,6 +242,7 @@ class SendGroupSms extends Component {
         .catch(error => console.log('error', error));
     }
 
+
     pickedTemplate(id) {
         const { templates } = this.state;
         const selected = templates.filter(i => i.id === id);
@@ -269,10 +270,19 @@ class SendGroupSms extends Component {
         //API
         this.setState({isSending: true});
 
+        // --- KEY CHANGE (LOADING SWEETALERT) ---
+        // Show the loading modal *before* making the API call
+        MySwal.fire({
+            html: <SmsSending />, // Use the existing React component
+            title: 'Sending SMS...',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+        });
+        // --- END KEY CHANGE ---
+
         var raw = JSON.stringify({
             requestType: "QUICKSMS",
             payload:{
-                // smsGateway: (this.state.smsGateway !== null)?this.state.smsGateway:'',
                 smsGateway: (getLoggedInUser().userType === 'RESELLER' || getLoggedInUser().userType === 'USER')?getLoggedInUser().routes[0].id:this.state.smsGateway,
                 senderId:this.state.selectedSenderId.value,
                 countryCode:"+91",
@@ -281,7 +291,6 @@ class SendGroupSms extends Component {
                 delimiter : ",",
                 removeDuplicate : "true",
                 messageType : this.props.sms_type,
-                //message : (this.state.templateBased)?this.state.combinedMessage:this.state.messageText,
                 message: this.state.messageText,
                 templateId: this.state.selectedTemplateId,
             }
@@ -289,8 +298,6 @@ class SendGroupSms extends Component {
 
         ServerApi().post('sms/sendQuickSms', raw)
           .then(res => {
-            // console.log(data);
-            // alert(data.response)
             this.setState({
                 selectedSenderId: {label: 'Select', value: 0},
                 messageText: '',
@@ -299,6 +306,10 @@ class SendGroupSms extends Component {
             });
 
             setTimeout(()=>{
+                // --- KEY CHANGE (CLOSE LOADING ALERT) ---
+                MySwal.close(); // Close the loading modal
+                // --- END KEY CHANGE ---
+
                 this.setState({isSending: false});
                 this.props.openSnack({type: 'success', message: 'SMS sent.'})
             },2300)
@@ -307,6 +318,9 @@ class SendGroupSms extends Component {
             this.loadBalance();
           })
           .catch(error => {
+            // --- KEY CHANGE (CLOSE LOADING ALERT) ---
+            MySwal.close(); // Close the loading modal on error
+            // --- END KEY CHANGE ---
             this.props.openSnack({type: 'error', message: 'Unable to send SMS'});
             this.setState({isSending: false});
             console.log('error', error);
@@ -315,9 +329,8 @@ class SendGroupSms extends Component {
 
     // for user
     loadBalance(){
+       // ... (loadBalance function remains unchanged)
         if(getLoggedInUser().userType === 'SUPER_ADMIN'){return false;}
-
-        // console.log(this.props.getSmsBalance());
 
         ServerApi().get(`client/getBalance/${getLoggedInUser().id}`)
           .then(res => {
@@ -339,6 +352,16 @@ class SendGroupSms extends Component {
 
         this.setState({isDrafting: true});
         
+        // --- KEY CHANGE (LOADING SWEETALERT) ---
+        // Show loading modal for drafting
+        MySwal.fire({
+            html: <SmsSending />,
+            title: 'Saving Draft...',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+        });
+        // --- END KEY CHANGE ---
+        
         let raw = JSON.stringify({
             templateName: this.state.messageText.replace(' ', '_'),
             message: this.state.messageText
@@ -350,14 +373,33 @@ class SendGroupSms extends Component {
                 return false;
             } 
 
-            // this.setState({savedMessages: res.data})
-            this.setState({modal_type: 'success', success_msg: true, success_message : 'Message saved as draft', isDrafting: false});
+            // --- KEY CHANGE (STATUS SWEETALERT) ---
+            // this.setState({modal_type: 'success', success_msg: true, success_message : 'Message saved as draft', isDrafting: false}); // REMOVED
+            this.setState({ isDrafting: false });
             
-            setTimeout(()=>{
-                window.location.reload()
-            },750);
+            // Replicate the logic from the old <SweetAlert>
+            MySwal.fire({
+                html: (
+                    <div>
+                        <SmsSent />
+                        <h6>Message saved as draft</h6>
+                    </div>
+                ),
+                icon: 'success'
+            }).then(() => {
+                // This was the original onConfirm action
+                setTimeout(()=>{
+                    window.location.reload()
+                },750);
+            });
+            // --- END KEY CHANGE ---
         })
-        .catch(error => console.log('error', error));
+        .catch(error => {
+            console.log('error', error);
+            this.setState({ isDrafting: false });
+            MySwal.close(); // Close loading modal on error
+            this.props.openSnack({type: 'error', message: 'Unable to save draft.'});
+        });
     }
 
     render() {
@@ -366,6 +408,8 @@ class SendGroupSms extends Component {
         return (
             <React.Fragment>
                 <Container fluid>
+                    {/* ... (All JSX in the render method remains unchanged, EXCEPT for the SweetAlert blocks) ... */}
+                    
                     <div className="page-title-box">
                         <Row className="align-items-center">
 
@@ -422,27 +466,6 @@ class SendGroupSms extends Component {
                                                 options={this.state.groups}
                                             />
                                         
-
-                                        {/*<FormGroup>
-                                            <Label>CAMPAIGN KEYWORD Only work with two way sms gateway provider</Label>
-                                                <Select
-                                                    label="CAMPAIGN KEYWORD Only work with two way sms gateway provider"
-                                                    value={selectedGroup}
-                                                    onChange={this.handleSelectGroup}
-                                                    options={SMS_GATEWAY}
-                                                />
-                                        </FormGroup>
-                                        
-                                        <FormGroup>
-                                            <Label>SMS TEMPLATES</Label>
-                                                <Select
-                                                    label="SMS TEMPLATES"
-                                                    value={selectedGroup}
-                                                    onChange={this.handleSelectGroup}
-                                                    options={SMS_GATEWAY}
-                                                />
-                                        </FormGroup>*/}
-                                        
                                         {this.state.groupLoading && (
                                             <FormGroup>
                                                 <ContactsLoading />
@@ -461,11 +484,6 @@ class SendGroupSms extends Component {
                                             value={this.state.recipientList}
                                             />
                                         <Row>
-                                            {/* <Col md="6">
-                                                <AvField inline tag={CustomInput} name="form_as_header" label="REMOVE DUPLICATE"
-                                                    type="checkbox" 
-                                                    validate={{ required: { value: false } }} />
-                                            </Col> */}
                                             <Col md="6 mb-3 ">
                                                 <span className="caption">No of mobile numbers <b>{this.state.totalMobileNumbers}</b></span>
                                             </Col>
@@ -473,7 +491,6 @@ class SendGroupSms extends Component {
                                         </FormGroup>
 
                                         {this.state.templateBased && this.state.selectedTemplateId && (
-                                            //<TemplateMessageBox setCombinedMessage={(combinedMessage)=>this.setState({combinedMessage})} selectedTemplateId={this.state.selectedTemplateId} templates={this.state.templates} />
                                             <Message messageText={this.state.messageText} messageHandler={this.updateMessageHandler} savedMessageHandler={this.savedMessageHandler} noExtraOptions={true} />
                                         )}
                                         
@@ -505,10 +522,7 @@ class SendGroupSms extends Component {
                                                 <Button size="sm" style={{float: 'right'}} type="submit" disabled={this.state.isSending} color="primary" className="mr-1">
                                                     <i className="fa fa-paper-plane mr-2"></i> {(this.state.isSending)?'Please Wait...':'Send'}
                                                 </Button>
-                                                {/* <Button onClick={()=>this.saveDraft()} size="sm" disabled={this.state.isDrafting} type="button" color="secondary" style={{float: 'right'}} className="mr-1">
-                                                    <i className="fa fa-save mr-2"></i> {(this.state.isDrafting)?'Please Wait...':'Save Draft'}
-                                                </Button> */}
-
+                                                {/* (saveDraft button remains unchanged) */}
                                             </div>
                                         </div>
 
@@ -524,32 +538,22 @@ class SendGroupSms extends Component {
 
                     </Row>
 
-                    {(this.state.isSending || this.state.isDrafting) &&
-                        <SweetAlert
-                            showConfirm={false}
-                            style={{margin: 'inherit', backgroundColor: 'none'}}
-                        >
-                            <SmsSending />
+                    {/* --- KEY CHANGE (SWEETALERT BLOCKS DELETED) --- */}
+                    {/* Both <SweetAlert> blocks (for loading and success) are
+                        deleted from the render method. They are now triggered
+                        imperatively (as function calls) in the 'sendSms' 
+                        and 'saveDraft' methods. */}
+                    
+                    {/* {(this.state.isSending || this.state.isDrafting) &&
+                        <SweetAlert ... >
                         </SweetAlert> 
-                    }
+                    } */}
 
-                    {this.state.success_msg &&
-                        <SweetAlert
-                            style={{margin: 'inherit'}}
-                            // title={this.state.success_message}
-                            confirmBtnBsStyle={this.state.modal_type}
-                            onConfirm={() => window.location.reload()} 
-                            // type={this.state.modal_type} 
-                        >
-                            {this.state.success_message === 'Insufficient credits' && (
-                                <NoBalance />
-                            )}
-                            {this.state.success_message !== 'Insufficient credits' && (
-                                <SmsSent />
-                            )}
-                            <h6>{this.state.success_message}</h6>
+                    {/* {this.state.success_msg &&
+                        <SweetAlert ... >
                         </SweetAlert> 
-                    }
+                    } */}
+                    {/* --- END KEY CHANGE --- */}
 
                 </Container>
             </React.Fragment>
@@ -557,8 +561,7 @@ class SendGroupSms extends Component {
     }
 }
 
-// export default withRouter(connect(null, { activateAuthLayout })(SendGroupSms));
-
+// ... (mapStateToProps and export remain unchanged)
 const mapStatetoProps = state => {
     const {sms_balance} = state.User;
     const {sms_type} = state.Sms;

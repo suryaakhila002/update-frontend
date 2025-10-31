@@ -4,7 +4,12 @@ import { activateAuthLayout } from '../../store/actions';
 import { withRouter } from 'react-router-dom';
 import { AvForm, AvField } from 'availity-reactstrap-validation';
 import { connect } from 'react-redux';
-import { MDBDataTable } from 'mdbreact';
+
+// --- KEY CHANGES (IMPORTS) ---
+// import { MDBDataTable } from 'mdbreact'; // REMOVED: Outdated
+import { DataGrid } from '@mui/x-data-grid'; // ADDED: Modern Data Table
+import { Box } from '@mui/material'; // ADDED: For layout
+// --- END KEY CHANGES ---
 
 class SpamWords extends Component {
     constructor(props) {
@@ -13,6 +18,26 @@ class SpamWords extends Component {
             selectedGroup: null, 
             selectedMulti: null,
             cSelected: [],
+
+            // --- KEY CHANGE (DATAGRID) ---
+            // Define columns for MUI DataGrid
+            columns: [
+                {
+                    field: 'words',
+                    headerName: 'WORDS',
+                    width: 200 // Adjusted width
+                },
+                {
+                    field: 'action',
+                    headerName: 'ACTION',
+                    width: 270,
+                    sortable: false
+                },
+            ],
+            // Define rows for DataGrid
+            rows: [] 
+            // The old 'data' object in render() is no longer needed
+            // --- END KEY CHANGE ---
         };
         this.onCheckboxBtnClick = this.onCheckboxBtnClick.bind(this);
     }
@@ -39,27 +64,15 @@ class SpamWords extends Component {
 
     render() {
 
-        const data = {
-            columns: [
-                {
-                    label: 'WORDS',
-                    field: 'words',
-                    sort: 'asc',
-                    width: 150
-                },
-                {
-                    label: 'ACTION',
-                    field: 'action',
-                    sort: 'asc',
-                    width: 270
-                },
-            ],
-            rows: []
-        };
+        // --- KEY CHANGE (DATAGRID) ---
+        // The old 'data' constant was removed from the render method
+        // and its 'columns' and 'rows' were moved to the state.
+        // --- END KEY CHANGE ---
 
         return (
             <React.Fragment>
                 <Container fluid>
+                    {/* ... (Header/Title Row and Form Column remain unchanged) ... */}
                     <div className="page-title-box">
                         <Row className="align-items-center">
                             <Col sm="6">
@@ -101,11 +114,26 @@ class SpamWords extends Component {
                                 <CardBody>
                                     <h4 className="mt-0 header-title">SPAM WORDS</h4>
 
-                                    <MDBDataTable
+                                    {/* --- KEY CHANGE (MDBDATATABLE REPLACEMENT) --- */}
+                                    {/* <MDBDataTable
                                         responsive
                                         striped
                                         data={data}
-                                    />
+                                    /> */}
+                                    <Box sx={{ height: 400, width: '100%' }}>
+                                        <DataGrid
+                                            rows={this.state.rows}
+                                            columns={this.state.columns}
+                                            pageSize={5}
+                                            rowsPerPageOptions={[5]}
+                                            disableSelectionOnClick
+                                            // DataGrid needs a unique 'id' field for each row.
+                                            // When you load data, you must provide a unique 'id'
+                                            // or use getRowId to point to a unique field (like 'words').
+                                            getRowId={(row) => row.words} 
+                                        />
+                                    </Box>
+                                    {/* --- END KEY CHANGE --- */}
                                 </CardBody>
                             </Card>
                         </Col>

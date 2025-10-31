@@ -3,13 +3,79 @@ import { Container, Row, Col, Card, CardBody } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { MDBDataTable } from 'mdbreact';
+
+// --- KEY CHANGES (IMPORTS) ---
+// import { MDBDataTable } from 'mdbreact'; // REMOVED: Outdated
+import { DataGrid } from '@mui/x-data-grid'; // ADDED: Modern Data Table
+import { Box } from '@mui/material'; // ADDED: For layout
+// --- END KEY CHANGES ---
 
 class SmsHistory extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            modal_standard: false
+            modal_standard: false,
+
+            // --- KEY CHANGE (DATAGRID) ---
+            // Define columns for MUI DataGrid
+            columns: [
+                {
+                    field: 'slno',
+                    headerName: 'SL',
+                    width: 50
+                },
+                {
+                    field: 'smsMsisdn', // Renamed from 'msisdn' to match data
+                    headerName: 'MSISDN',
+                    width: 150
+                },
+                {
+                    field: 'sender_id',
+                    headerName: 'SENDER ID',
+                    width: 150
+                },
+                {
+                    field: 'smsMessage', // Renamed from 'messageText' to match data
+                    headerName: 'MESSAGE',
+                    width: 150
+                },
+                {
+                    field: 'message_id',
+                    headerName: 'MESSAGE ID',
+                    width: 150
+                },
+                {
+                    field: 'submit_date',
+                    headerName: 'SUBMIT DATE',
+                    width: 150
+                },
+                {
+                    field: 'deliver_date',
+                    headerName: 'DELIVER DATE',
+                    width: 150 // Adjusted width
+                },
+                {
+                    field: 'status',
+                    headerName: 'DLR STATUS',
+                    width: 150, // Adjusted width
+                    renderCell: (params) => (params.value) // To render JSX
+                },
+            ],
+            // Define rows for DataGrid
+            rows: [
+                {
+                    id: 1, // Added unique 'id'
+                    slno: '1',
+                    smsMsisdn: '1234567890', // Renamed field
+                    sender_id: 'VOTTRS',
+                    smsMessage: 'टेस्ट मैसेज టెస్ట్', // Renamed field
+                    message_id: '3r519465013287560',
+                    submit_date: '01/15/2020 3:21PM',
+                    deliver_date: '01/15/2020 3:21PM',
+                    status: <span className="badge badge-success p-1">DELIVERED</span>,
+                },
+            ]
+            // --- END KEY CHANGE ---
         };
         this.tog_standard = this.tog_standard.bind(this);
     }
@@ -34,75 +100,15 @@ class SmsHistory extends Component {
 
     render() {
 
-        const data = {
-            columns: [
-                {
-                    label: 'SL' ,
-                    field: 'slno',
-                    sort: 'asc',
-                    width: 50
-                },
-                {
-                    label: 'MSISDN' ,
-                    field: 'smsMsisdn',
-                    sort: 'asc',
-                    width: 150
-                },
-                {
-                    label: 'SENDER ID',
-                    field: 'sender_id',
-                    sort: 'asc',
-                    width: 150
-                },
-                {
-                    label: 'MESSAGE',
-                    field: 'smsMessage',
-                    sort: 'asc',
-                    width: 150
-                },
-                {
-                    label: 'MESSAGE ID',
-                    field: 'message_id',
-                    sort: 'asc',
-                    width: 150
-                },
-                {
-                    label: 'SUBMIT DATE',
-                    field: 'submit_date',
-                    sort: 'asc',
-                    width: 150
-                },
-                {
-                    label: 'DELIVER DATE',
-                    field: 'deliver_date',
-                    sort: 'asc',
-                    width: 50
-                },
-                {
-                    label: 'DLR STATUS',
-                    field: 'status',
-                    sort: 'asc',
-                    width: 100
-                },
-            ],
-            rows: [
-                
-                {
-                    slno: '1',
-                    msisdn: '1234567890',
-                    sender_id: 'VOTTRS',
-                    messageText: 'टेस्ट मैसेज టెస్ట్',
-                    message_id: '3r519465013287560',
-                    submit_date: '01/15/2020 3:21PM',
-                    deliver_date: '01/15/2020 3:21PM',
-                    status: <span className="badge badge-success p-1">DELIVERED</span>,
-                },
-            ]
-        };
+        // --- KEY CHANGE (DATAGRID) ---
+        // The old 'data' constant was removed from the render method
+        // and its 'columns' and 'rows' were moved to the state.
+        // --- END KEY CHANGE ---
 
         return (
             <React.Fragment>
                 <Container fluid>
+                    {/* ... (Header/Title Row remains unchanged) ... */}
                     <div className="page-title-box">
                         <Row className="align-items-center">
                             <Col sm="6">
@@ -116,7 +122,8 @@ class SmsHistory extends Component {
                             <Card>
                                 <CardBody>
 
-                                    <MDBDataTable
+                                    {/* --- KEY CHANGE (MDBDATATABLE REPLACEMENT) --- */}
+                                    {/* <MDBDataTable
                                         sortable
                                         responsive
                                         striped
@@ -124,7 +131,21 @@ class SmsHistory extends Component {
                                         data={data}
                                         footer={false}
                                         foot={false}
-                                    />
+                                    /> */}
+                                    <Box sx={{ height: 400, width: '100%' }}>
+                                        <DataGrid
+                                            rows={this.state.rows}
+                                            columns={this.state.columns}
+                                            pageSize={5}
+                                            rowsPerPageOptions={[5, 10, 20]}
+                                            disableSelectionOnClick
+                                            // DataGrid needs a unique 'id' field for each row.
+                                            // 'id' field was added in state
+                                            getRowId={(row) => row.id} 
+                                        />
+                                    </Box>
+                                    {/* --- END KEY CHANGE --- */}
+
                                 </CardBody>
                             </Card>
                         </Col>

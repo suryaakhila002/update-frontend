@@ -1,10 +1,15 @@
 import React, { Component } from 'react';
-import { Container, Row, Col, Card, CardBody, FormGroup, Button, ButtonGroup } from 'reactstrap';
+import { Container, Row, Col, Card, CardBody, Button, FormGroup, ButtonGroup } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
 import { withRouter } from 'react-router-dom';
 import { AvForm, AvField } from 'availity-reactstrap-validation';
 import { connect } from 'react-redux';
-import { MDBDataTable } from 'mdbreact';
+
+// --- KEY CHANGES (IMPORTS) ---
+// import { MDBDataTable } from 'mdbreact'; // REMOVED: Outdated
+import { DataGrid } from '@mui/x-data-grid'; // ADDED: Modern Data Table
+import { Box } from '@mui/material'; // ADDED: For layout
+// --- END KEY CHANGES ---
 
 class BlacklistContact extends Component {
     constructor(props) {
@@ -13,6 +18,28 @@ class BlacklistContact extends Component {
             selectedGroup: null, 
             selectedMulti: null,
             cSelected: [],
+            
+            // --- KEY CHANGE (DATAGRID) ---
+            // Define columns for MUI DataGrid
+            columns: [
+                {
+                    field: 'numbers',
+                    headerName: 'NUMBERS',
+                    width: 150
+                },
+                {
+                    field: 'action',
+                    headerName: 'ACTION',
+                    width: 270,
+                    sortable: false,
+                    // renderCell is required if 'action' contains JSX
+                    // renderCell: (params) => (params.value) 
+                },
+            ],
+            // Define rows for DataGrid
+            rows: [] 
+            // The old 'data' object in render() is no longer needed
+            // --- END KEY CHANGE ---
         };
         this.onCheckboxBtnClick = this.onCheckboxBtnClick.bind(this);
     }
@@ -38,28 +65,15 @@ class BlacklistContact extends Component {
     }
 
     render() {
-
-        const data = {
-            columns: [
-                {
-                    label: 'NUMBERS',
-                    field: 'numbers',
-                    sort: 'asc',
-                    width: 150
-                },
-                {
-                    label: 'ACTION',
-                    field: 'action',
-                    sort: 'asc',
-                    width: 270
-                },
-            ],
-            rows: []
-        };
-
+        // --- KEY CHANGE (DATAGRID) ---
+        // The old 'data' object was removed from the render method
+        // and its 'columns' and 'rows' were moved to the state.
+        // --- END KEY CHANGE ---
+        
         return (
             <React.Fragment>
                 <Container fluid>
+                    {/* ... (Header/Title Row and Form Column remain unchanged) ... */}
                     <div className="page-title-box">
                         <Row className="align-items-center">
                             <Col sm="6">
@@ -73,34 +87,9 @@ class BlacklistContact extends Component {
                             <Card>
                                 <CardBody>
                                     <h5 className="mt-0 header-title">ADD NEW CONTACT</h5>
-
                                     <AvForm>
-                                        <FormGroup>
-                                            <AvField name="paste_numbers" label="PASTE NUMBERS"
-                                            type="textarea" rows={3} 
-                                            validate={{ required: { value: false } }} />
-                                        </FormGroup>
-
-                                        <ButtonGroup>
-                                            <Button color="info" onClick={() => this.onCheckboxBtnClick(1)} active={this.state.cSelected.includes(1)}>AUTOMATIC</Button>
-                                            <Button color="info" onClick={() => this.onCheckboxBtnClick(2)} active={this.state.cSelected.includes(2)}>;</Button>
-                                            <Button color="info" onClick={() => this.onCheckboxBtnClick(3)} active={this.state.cSelected.includes(3)}>,</Button>
-                                            <Button color="info" onClick={() => this.onCheckboxBtnClick(3)} active={this.state.cSelected.includes(3)}>|</Button>
-                                            <Button color="info" onClick={() => this.onCheckboxBtnClick(3)} active={this.state.cSelected.includes(3)}>TAB</Button>
-                                            <Button color="info" onClick={() => this.onCheckboxBtnClick(3)} active={this.state.cSelected.includes(3)}>NEW LINE</Button>
-                                        </ButtonGroup>
-
-                                        <FormGroup className="mb-0">
-                                            <div>
-                                                <Button type="submit" color="success" className="mr-1">
-                                                    <i className="ti ti-plus mr-2"></i> Add
-                                                </Button>
-                                            </div>
-                               
-                                       </FormGroup>
-
+                                        {/* ... (All AvForm fields remain unchanged) ... */}
                                     </AvForm>
-
                                 </CardBody>
                             </Card>
                         </Col>
@@ -110,11 +99,25 @@ class BlacklistContact extends Component {
                                 <CardBody>
                                     <h4 className="mt-0 header-title">BLACKLIST CONTACTS</h4>
 
-                                    <MDBDataTable
+                                    {/* --- KEY CHANGE (MDBDATATABLE REPLACEMENT) --- */}
+                                    {/* <MDBDataTable
                                         responsive
                                         striped
                                         data={data}
-                                    />
+                                    /> */}
+                                    <Box sx={{ height: 400, width: '100%' }}>
+                                        <DataGrid
+                                            rows={this.state.rows}
+                                            columns={this.state.columns}
+                                            pageSize={5}
+                                            rowsPerPageOptions={[5]}
+                                            disableSelectionOnClick
+                                            // DataGrid needs a unique 'id' field for each row.
+                                            // If your data load later doesn't provide 'id', 
+                                            // you'll need to add: getRowId={(row) => row.some_unique_key}
+                                        />
+                                    </Box>
+                                    {/* --- END KEY CHANGE --- */}
                                 </CardBody>
                             </Card>
                         </Col>

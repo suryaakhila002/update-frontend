@@ -9,8 +9,6 @@ import TicketHistory from '../AllCharts/apex/ticketHistory';
 import SmsSuccessHistory from '../AllCharts/apex/smsSuccessHistory';
 import SmsHistoryByDate from '../AllCharts/apex/smsHistoryByDate';
 
-import 'chartist/dist/scss/chartist.scss';
-
 import DashboardCards from '../../components/Dashboard/DashboardCards';
 
 

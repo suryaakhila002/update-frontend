@@ -5,9 +5,6 @@ import { Link, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {getLoggedInUser} from '../../helpers/authUtils';
 
-import 'chartist/dist/scss/chartist.scss';
-
-
 //Images admin
 import img1 from '../../images/ATSICONS/Dashboard/Contacts.png';
 import img2 from '../../images/ATSICONS/Dashboard/group Contacts.png';

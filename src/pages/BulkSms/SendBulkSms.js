@@ -7,9 +7,17 @@ import { connect } from 'react-redux';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Select from 'react-select';
-import SweetAlert from 'react-bootstrap-sweetalert';
 import Dropzone from 'react-dropzone';
 import {ServerApi} from '../../utils/ServerApi';
+
+// --- KEY CHANGES (IMPORTS) ---
+// import SweetAlert from 'react-bootstrap-sweetalert'; // REMOVED: Outdated
+import Swal from 'sweetalert2'; // ADDED: Modern Alert Library
+import withReactContent from 'sweetalert2-react-content'; // ADDED: React wrapper
+// --- END KEY CHANGES ---
+
+// Initialize SweetAlert2
+const MySwal = withReactContent(Swal);
 
 class SendBulkSms extends Component {
     constructor(props) {
@@ -27,11 +35,14 @@ class SendBulkSms extends Component {
             alert2: true,
             messageText: '',
             isSending: false,
-            success_msg: false,
-            success_message: '',
-            modal_standard: false,
+            // --- KEY CHANGE (STATE) ---
+            // These are no longer needed, as SweetAlert2 is called imperatively
+            // success_msg: false,
+            // success_message: '',
+            // modal_standard: false,
+            // modal_type: 'success',
+            // --- END KEY CHANGE ---
             renderForm: false,
-            modal_type: 'success',
             selectedFile: [],
             default_date: new Date(), default: false, start_date: new Date(), monthDate: new Date(), yearDate: new Date(), end_date: new Date(), date: new Date(),
             senderIds: [
@@ -104,10 +115,7 @@ class SendBulkSms extends Component {
         this.setState({ renderForm: true, selectedFile: files });
     }
         
-
-    /**
-    * Formats the size
-    */
+    // ... (formatBytes function remains unchanged)
     formatBytes = (bytes, decimals = 2) => {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
@@ -144,6 +152,7 @@ class SendBulkSms extends Component {
     }
 
     loadSenderIds(){
+        // ... (loadSenderIds function remains unchanged)
         ServerApi().get('getActiveSenderIds')
           .then(res => {
             if (res.data === undefined) {
@@ -163,6 +172,7 @@ class SendBulkSms extends Component {
     }
 
     loadRoutes(){
+        // ... (loadRoutes function remains unchanged)
         ServerApi().get('routes/fetch-active-routes')
           .then(res => {
             if (res.data === undefined) {
@@ -201,17 +211,38 @@ class SendBulkSms extends Component {
 
         ServerApi().post('sms/sendQuickSms', raw)
           .then(res => {
-            // console.log(data);
-            // alert(data.response)
-            this.setState({modal_type: 'success', success_msg: true, success_message : res.data.response, isSending: false});
+            
+            // --- KEY CHANGE (SWEETALERT REPLACEMENT) ---
+            // We no longer set state to show the alert. We call it directly.
+            // this.setState({modal_type: 'success', success_msg: true, success_message : res.data.response, isSending: false}); // REMOVED
+            
+            this.setState({ isSending: false });
+            MySwal.fire({
+                title: 'Success!',
+                text: res.data.response, // Use the API response message
+                icon: 'success', // 'modal_type' was hardcoded to success
+                confirmButtonText: 'OK'
+            });
+            // --- END KEY CHANGE ---
 
             this.form && this.form.reset();
 
           })
-          .catch(error => console.log('error', error));
+          .catch(error => {
+              console.log('error', error);
+              this.setState({ isSending: false }); // Ensure loading stops on error
+              // Also show an error alert
+              MySwal.fire({
+                title: 'Error!',
+                text: 'Something went wrong while sending the SMS.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+              });
+          });
     }
 
     renderForm(){
+        // ... (renderForm function remains unchanged)
         return(
             <Row>
             <Col sm="12">
@@ -380,6 +411,7 @@ class SendBulkSms extends Component {
         return (
             <React.Fragment>
                 <Container fluid>
+                    {/* ... (Main layout JSX remains unchanged) ... */}
                     <div className="page-title-box">
                         <Row className="align-items-center">
 
@@ -418,6 +450,7 @@ class SendBulkSms extends Component {
                                                                 </Col>
                                                                 <Col className="pl-0">
                                                                     <Link to="#" className="text-muted font-weight-bold">{f.name}</Link>
+
                                                                     <p className="mb-0"><strong>{f.formattedSize}</strong></p>
                                                                 </Col>
                                                             </Row>
@@ -439,6 +472,7 @@ class SendBulkSms extends Component {
 
                         {this.state.showSavedMessage &&
                         <Col lg="6" >
+                           {/* ... (Saved Messages section remains unchanged) ... */}
                             <h4 className="mt-0 header-title">Saved Messages</h4>
                                 <div className="">
                                     <Alert color="success" className="mb-2" isOpen={this.state.alert1} >
@@ -468,7 +502,10 @@ class SendBulkSms extends Component {
 
                     </Row>
 
-                    {this.state.success_msg &&
+                    {/* --- KEY CHANGE (SWEETALERT REPLACEMENT) --- */}
+                    {/* The old <SweetAlert> component is DELETED from the render method.
+                        It is now triggered as a function call in the 'sendSms' method. */}
+                    {/* {this.state.success_msg &&
                         <SweetAlert
                             style={{margin: 'inherit'}}
                             title={this.state.success_message}
@@ -476,7 +513,9 @@ class SendBulkSms extends Component {
                             onConfirm={() => this.setState({ success_msg: false })} 
                             type={this.state.modal_type} >
                         </SweetAlert> 
-                    }
+                    } */}
+                    {/* --- END KEY CHANGE --- */}
+
 
                 </Container>
             </React.Fragment>

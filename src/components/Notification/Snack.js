@@ -1,7 +1,7 @@
 import React from 'react';
 import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
+import CloseIcon from '@mui/icons-material/Close'; // <-- CHANGED LINE
 import {useSelector, useDispatch} from 'react-redux';
 import MuiAlert from '@mui/material/Alert';
 

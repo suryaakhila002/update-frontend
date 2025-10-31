@@ -1,10 +1,15 @@
 import React, { Component } from 'react';
-import { Container, Row, Col, Card, CardBody, FormGroup, Button } from 'reactstrap';
+import { Container, Row, Col, Card, CardBody, Button, FormGroup } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
 import { withRouter } from 'react-router-dom';
 import { AvForm, AvField } from 'availity-reactstrap-validation';
 import { connect } from 'react-redux';
-import { MDBDataTable } from 'mdbreact';
+
+// --- KEY CHANGES (IMPORTS) ---
+// import { MDBDataTable } from 'mdbreact'; // REMOVED: Outdated
+import { DataGrid } from '@mui/x-data-grid'; // ADDED: Modern Data Table
+import { Box } from '@mui/material'; // ADDED: For layout
+// --- END KEY CHANGES ---
 
 class PhoneBook extends Component {
     constructor(props) {
@@ -12,6 +17,31 @@ class PhoneBook extends Component {
         this.state = {
             selectedGroup: null, 
             selectedMulti: null,
+            
+            // --- KEY CHANGE (DATAGRID) ---
+            // Define columns for MUI DataGrid
+            columns: [
+                {
+                    field: 'sl',
+                    headerName: 'SL',
+                    width: 150
+                },
+                {
+                    field: 'list_name',
+                    headerName: 'LIST NAME',
+                    width: 270
+                },
+                {
+                    field: 'action',
+                    headerName: 'ACTION',
+                    width: 200,
+                    sortable: false
+                }
+            ],
+            // Define rows for DataGrid
+            rows: [] 
+            // The old 'data' object in render() is no longer needed
+            // --- END KEY CHANGE ---
         };
     }
 
@@ -25,34 +55,15 @@ class PhoneBook extends Component {
     }
 
     render() {
-
-        const data = {
-            columns: [
-                {
-                    label: 'SL',
-                    field: 'sl',
-                    sort: 'asc',
-                    width: 150
-                },
-                {
-                    label: 'LIST NAME',
-                    field: 'list_name',
-                    sort: 'asc',
-                    width: 270
-                },
-                {
-                    label: 'ACTION',
-                    field: 'action',
-                    sort: 'asc',
-                    width: 200
-                }
-            ],
-            rows: []
-        };
+        // --- KEY CHANGE (DATAGRID) ---
+        // The old 'data' constant was removed from the render method
+        // and its 'columns' and 'rows' were moved to the state.
+        // --- END KEY CHANGE ---
 
         return (
             <React.Fragment>
                 <Container fluid>
+                    {/* ... (Header/Title Row and Form Column remain unchanged) ... */}
                     <div className="page-title-box">
                         <Row className="align-items-center">
                             <Col sm="6">
@@ -92,11 +103,26 @@ class PhoneBook extends Component {
                                 <CardBody>
                                     <h4 className="mt-0 header-title">PHONE BOOK</h4>
 
-                                    <MDBDataTable
+                                    {/* --- KEY CHANGE (MDBDATATABLE REPLACEMENT) --- */}
+                                    {/* <MDBDataTable
                                         responsive
                                         striped
                                         data={data}
-                                    />
+                                    /> */}
+                                    <Box sx={{ height: 400, width: '100%' }}>
+                                        <DataGrid
+                                            rows={this.state.rows}
+                                            columns={this.state.columns}
+                                            pageSize={5}
+                                            rowsPerPageOptions={[5]}
+                                            disableSelectionOnClick
+                                            // DataGrid needs a unique 'id' field for each row.
+                                            // Since the data is empty, we'll assume the 'sl' field
+                                            // will be the unique identifier when data is loaded.
+                                            getRowId={(row) => row.sl} 
+                                        />
+                                    </Box>
+                                    {/* --- END KEY CHANGE --- */}
                                 </CardBody>
                             </Card>
                         </Col>

@@ -15,7 +15,9 @@
     "@mui/icons-material": "^7.3.4",
     "@mui/lab": "^7.0.1-beta.18",
     "@mui/material": "^7.3.4",
+    "@mui/x-data-grid": "^8.16.0",
     "antd": "^5.27.6",
+    "apexcharts": "^5.3.5",
     "availity-reactstrap-validation": "^2.7.1",
     "axios": "^1.12.2",
     "classnames": "^2.5.1",
@@ -27,6 +29,7 @@
     "react-apexcharts": "^1.8.0",
     "react-datepicker": "^8.8.0",
     "react-dom": "^19.1.1",
+    "react-dropdown": "^1.11.0",
     "react-dropzone": "^14.3.8",
     "react-lottie": "^1.2.10",
     "react-maskinput": "^3.2.0",
@@ -37,7 +40,10 @@
     "react-select": "^5.10.2",
     "react-top-loading-bar": "^3.0.2",
     "reactstrap": "^9.2.3",
-    "sweetalert2": "^11.26.3"
+    "recharts": "^3.3.0",
+    "sass": "^1.93.2",
+    "sweetalert2": "^11.26.3",
+    "sweetalert2-react-content": "^5.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

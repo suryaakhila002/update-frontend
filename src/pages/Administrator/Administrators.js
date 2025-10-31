@@ -5,8 +5,19 @@ import Select from 'react-select';
 import { withRouter } from 'react-router-dom';
 import { AvForm, AvField } from 'availity-reactstrap-validation';
 import { connect } from 'react-redux';
-import { MDBDataTable } from 'mdbreact';
-import SweetAlert from 'react-bootstrap-sweetalert';
+
+// --- KEY CHANGES (IMPORTS) ---
+// import { MDBDataTable } from 'mdbreact'; // REMOVED: Outdated
+// import SweetAlert from 'react-bootstrap-sweetalert'; // REMOVED: Outdated
+
+import { DataGrid } from '@mui/x-data-grid'; // ADDED: Modern Data Table
+import { Box } from '@mui/material'; // ADDED: For layout
+import Swal from 'sweetalert2'; // ADDED: Modern Alert Library
+import withReactContent from 'sweetalert2-react-content'; // ADDED: React wrapper
+// --- END KEY CHANGES ---
+
+// Initialize SweetAlert2
+const MySwal = withReactContent(Swal);
 
 const ROLES = [
     {
@@ -26,52 +37,60 @@ class Administrators extends Component {
         this.state = {
             selectedGroup: {label:'User', value: 'User'}, 
             selectedMulti: null,
-            success_msg: false,
+            // success_msg: false, // REMOVED: No longer needed by SweetAlert2
             isAdding: false,
             isDeleting: false,
             modal_delete: false,
             delete_sid: '',
+
+            // --- KEY CHANGE (DATAGRID COLUMNS) ---
+            // This is the new format required by MUI DataGrid.
+            // 'label' becomes 'headerName', and we use 'renderCell' for custom JSX.
+            columns: [
+                {
+                    field: 'sl',
+                    headerName: 'SL',
+                    width: 150
+                },
+                {
+                    field: 'name',
+                    headerName: 'Name',
+                    width: 270
+                },
+                {
+                    field: 'userName',
+                    headerName: 'User Name',
+                    width: 270
+                },
+                {
+                    field: 'role',
+                    headerName: 'Role',
+                    width: 270
+                },
+                {
+                    field: 'status',
+                    headerName: 'STATUS',
+                    width: 200,
+                    // renderCell is required to render JSX (the <span.../>)
+                    renderCell: (params) => (params.value)
+                },
+                {
+                    field: 'action',
+                    headerName: 'ACTION',
+                    width: 200,
+                    sortable: false,
+                    // renderCell is required to render JSX (the <Button.../>)
+                    renderCell: (params) => (params.value)
+                }
+            ],
+            // --- END KEY CHANGE ---
+
+            // The 'columns' array is removed from tableData
             tableData : {
-                columns: [
-                    {
-                        label: 'SL',
-                        field: 'sl',
-                        sort: 'asc',
-                        width: 150
-                    },
-                    {
-                        label: 'Name',
-                        field: 'name',
-                        sort: 'asc',
-                        width: 270
-                    },
-                    {
-                        label: 'User Name',
-                        field: 'userName',
-                        sort: 'asc',
-                        width: 270
-                    },
-                    {
-                        label: 'Role',
-                        field: 'role',
-                        sort: 'asc',
-                        width: 270
-                    },
-                    {
-                        label: 'STATUS',
-                        field: 'status',
-                        sort: 'asc',
-                        width: 200
-                    },
-                    {
-                        label: 'ACTION',
-                        field: 'action',
-                        sort: 'asc',
-                        width: 100
-                    }
-                ],
                 rows: [
-                    
+                    // DataGrid requires a unique 'id' field for every row.
+                    // When loading data, you MUST ensure each row has a unique 'id'.
+                    // I will add 'id' in the loadClientGroups method.
                 ]
             },
         };
@@ -128,8 +147,20 @@ class Administrators extends Component {
         fetch("http://atssms.com:8090/groups/addGroup", requestOptions)
           .then(response => response.json())
           .then(data => {
-            // console.log(data);
-            this.setState({success_msg: true, success_message: data.response, isAdding: false});
+            
+            // --- KEY CHANGE (SWEETALERT REPLACEMENT) ---
+            // We no longer set state. We just call the alert function directly.
+            // this.setState({success_msg: true, success_message: data.response, isAdding: false}); // REMOVED
+            
+            this.setState({ isAdding: false });
+            MySwal.fire({
+                title: 'Success!',
+                text: data.response, // Show the API message
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+            // --- END KEY CHANGE ---
+
             this.loadClientGroups();
 
           })
@@ -176,15 +207,23 @@ class Administrators extends Component {
                 return false;
             }
             
-            data.map((item, index)=>{
+            // --- KEY CHANGE (DataGrid data mapping) ---
+            // 1. Added 'sl' field for the 'SL' column
+            // 2. Ensured the 'id' field exists for DataGrid
+            // 3. Fixed the map function (it was returning 'true' instead of 'item')
+            const formattedData = data.map((item, index)=>{
+                item.sl = index + 1; // Add the 'sl' field
+                // item.id is assumed to come from the API. If not, 'item.sl' can be 'id'
+                if (!item.id) item.id = item.sl; 
+                
                 item.status = (item.isDeleted === 'Active')?(<span className="badge badge-success p-1">Active</span>):(<span className="badge badge-danger p-1">In Active</span>);
                 item.action = <div><Button onClick={()=>null} type="button" color="primary" size="sm" className="waves-effect waves-light mr-2">Manage</Button>
                                    <Button onClick={()=>this.tog_delete(item.id)} type="button" color="danger" size="sm" className="waves-effect">Delete</Button></div>;
-                return true;
+                return item; // FIX: Was 'return true'
             }); 
-            let newTableDataRows = [...this.state.tableData.rows];
-            newTableDataRows = data;
-            this.setState({tableData: {...this.state.tableData, rows: newTableDataRows}})
+            
+            this.setState({tableData: {...this.state.tableData, rows: formattedData}})
+            // --- END KEY CHANGE ---
           })
           .catch(error => console.log('error', error));
     }
@@ -208,7 +247,7 @@ class Administrators extends Component {
                         <Col sm="12" lg="4">
                             <Card>
                                 <CardBody>
-
+                                    {/* ... (The form code remains unchanged) ... */}
                                     <h4 className="mt-0 header-title">Add Administrator</h4>
 
                                     <AvForm onValidSubmit={this.addClientGroup}>
@@ -273,18 +312,36 @@ class Administrators extends Component {
                                 <CardBody>
                                     <h4 className="mt-0 header-title">Administrators</h4>
 
-                                    <MDBDataTable
+                                    {/* --- KEY CHANGE (MDBDATATABLE REPLACEMENT) --- */}
+                                    {/* <MDBDataTable
                                         responsive
                                         striped
                                         data={this.state.tableData}
-                                    />
+                                    /> */}
+
+                                    <Box sx={{ height: 400, width: '100%' }}>
+                                      <DataGrid
+                                        rows={this.state.tableData.rows}
+                                        columns={this.state.columns}
+                                        pageSize={5}
+                                        rowsPerPageOptions={[5]}
+                                        // We use 'sl' as the unique ID, as defined in loadClientGroups
+                                        getRowId={(row) => row.sl} 
+                                        disableSelectionOnClick
+                                      />
+                                    </Box>
+                                    {/* --- END KEY CHANGE --- */}
+
                                 </CardBody>
                             </Card>
                         </Col>
 
                     </Row>
 
-                    {this.state.success_msg &&
+                    {/* --- KEY CHANGE (SWEETALERT REPLACEMENT) --- */}
+                    {/* The old SweetAlert component is deleted from the render method.
+                        It is now triggered as a function call in 'addClientGroup'. */}
+                    {/* {this.state.success_msg &&
                         <SweetAlert
                             style={{margin: 'inherit'}}
                             title={this.state.success_message}
@@ -292,9 +349,12 @@ class Administrators extends Component {
                             confirmBtnBsStyle="success"
                             onConfirm={() => this.setState({ success_msg: false })} >
                         </SweetAlert> 
-                    }
+                    } */}
+                    {/* --- END KEY CHANGE --- */}
+
 
                     <Modal centered isOpen={this.state.modal_delete} toggle={this.tog_delete} >
+                         {/* ... (Modal code remains unchanged) ... */}
                         <ModalBody>
                             <button type="button" onClick={() => this.setState({ modal_delete: false })} className="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>

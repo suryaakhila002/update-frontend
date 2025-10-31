@@ -5,10 +5,21 @@ import Select from 'react-select';
 import {  withRouter } from 'react-router-dom';
 import { AvForm, AvField } from 'availity-reactstrap-validation';
 import { connect } from 'react-redux';
-import { MDBDataTable } from 'mdbreact';
-import SweetAlert from 'react-bootstrap-sweetalert';
 import {Tag} from 'antd';
 import {ServerApi} from '../../utils/ServerApi';
+
+// --- KEY CHANGES (IMPORTS) ---
+// import { MDBDataTable } from 'mdbreact'; // REMOVED: Outdated
+// import SweetAlert from 'react-bootstrap-sweetalert'; // REMOVED: Outdated
+
+import { DataGrid } from '@mui/x-data-grid'; // ADDED: Modern Data Table
+import { Box } from '@mui/material'; // ADDED: For layout
+import Swal from 'sweetalert2'; // ADDED: Modern Alert Library
+import withReactContent from 'sweetalert2-react-content'; // ADDED: React wrapper
+// --- END KEY CHANGES ---
+
+// Initialize SweetAlert2
+const MySwal = withReactContent(Swal);
 
 const CLIENT_GROUP_STATUS = [
     {
@@ -26,42 +37,48 @@ class ClientGroups extends Component {
         this.state = {
             selectedGroup: {label:'Active', value: 'Active'}, 
             selectedMulti: null,
-            success_msg: false,
+            // --- KEY CHANGE (STATE) ---
+            // These are no longer needed for SweetAlert2
+            // success_msg: false,
+            // --- END KEY CHANGE ---
             isAdding: false,
             isDeleting: false,
             modal_delete: false,
             delete_sid: '',
-            tableData : {
-                columns: [
-                    {
-                        label: 'Group Name',
-                        field: 'groupName',
-                        sort: 'asc',
-                        width: 150
-                    },
-                    {
-                        label: 'CREATED BY',
-                        field: 'createdBy',
-                        sort: 'asc',
-                        width: 270
-                    },
-                    {
-                        label: 'STATUS',
-                        field: 'status',
-                        sort: 'asc',
-                        width: 200
-                    },
-                    {
-                        label: 'ACTION',
-                        field: 'action',
-                        sort: 'asc',
-                        width: 100
-                    }
-                ],
-                rows: [
-                    
-                ]
-            },
+            
+            // --- KEY CHANGE (DATAGRID) ---
+            // Define columns for MUI DataGrid
+            columns: [
+                {
+                    field: 'groupName',
+                    headerName: 'Group Name',
+                    width: 150
+                },
+                {
+                    field: 'createdBy',
+                    headerName: 'CREATED BY',
+                    width: 270
+                },
+                {
+                    field: 'status',
+                    headerName: 'STATUS',
+                    width: 200,
+                    // renderCell is required to render JSX (<Tag>)
+                    renderCell: (params) => (params.value)
+                },
+                {
+                    field: 'action',
+                    headerName: 'ACTION',
+                    width: 200,
+                    sortable: false,
+                    // renderCell is required to render JSX (<Button>)
+                    renderCell: (params) => (params.value)
+                }
+            ],
+            // Define rows for DataGrid
+            rows: []
+            // The old 'tableData' state is no longer needed
+            // --- END KEY CHANGE ---
         };
         this.addClientGroup = this.addClientGroup.bind(this);
         this.tog_delete = this.tog_delete.bind(this);
@@ -107,10 +124,22 @@ class ClientGroups extends Component {
 
         ServerApi().post('groups/addGroup', raw)
           .then(res => {
-            this.setState({success_msg: true, success_message: res.data.response, isAdding: false});
+            // --- KEY CHANGE (SWEETALERT REPLACEMENT) ---
+            // this.setState({success_msg: true, success_message: res.data.response, isAdding: false}); // REMOVED
+            this.setState({ isAdding: false });
+            MySwal.fire({
+                title: 'Success!',
+                text: res.data.response,
+                icon: 'success'
+            });
+            // --- END KEY CHANGE ---
             this.loadClientGroups();
           })
-          .catch(error => console.log('error', error));
+          .catch(error => {
+              console.log('error', error);
+              this.setState({ isAdding: false });
+              MySwal.fire('Error!', 'Could not add group.', 'error');
+          });
     }
 
     deleteGroup(){
@@ -123,8 +152,13 @@ class ClientGroups extends Component {
             this.setState({isDeleting: false});
             this.loadClientGroups();
             this.tog_delete();
+            MySwal.fire('Deleted!', 'The group has been deleted.', 'success'); // Added success feedback
           })
-        .catch(error => console.log('error', error));
+        .catch(error => {
+            console.log('error', error);
+            this.setState({isDeleting: false});
+            MySwal.fire('Error!', 'Could not delete group.', 'error');
+        });
     }
 
     loadClientGroups(){
@@ -134,15 +168,18 @@ class ClientGroups extends Component {
                 return false;
             }
             
-            res.data.map((item, index)=>{
+            // --- KEY CHANGE (DATAGRID MAPPING) ---
+            // 1. DataGrid needs a unique 'id' field, which 'item.id' provides.
+            // 2. The map function was incorrectly returning 'true', fixed to return 'item'.
+            const formattedRows = res.data.map((item, index)=>{
                 item.status = (item.isDeleted === 'Active')?(<Tag color="green">Active</Tag>):(<Tag color="red">In Active</Tag>);
                 item.action = <div><Button onClick={()=>null} type="button" color="primary" size="sm" className="waves-effect waves-light mr-2">Manage</Button>
                                    <Button onClick={()=>this.tog_delete(item.id)} type="button" color="danger" size="sm" className="waves-effect">Delete</Button></div>;
-                return true;
+                return item; // FIX: Was 'return true'
             }); 
-            let newTableDataRows = [...this.state.tableData.rows];
-            newTableDataRows = res.data;
-            this.setState({tableData: {...this.state.tableData, rows: newTableDataRows}})
+            
+            this.setState({ rows: formattedRows });
+            // --- END KEY CHANGE ---
           })
           .catch(error => console.log('error', error));
     }
@@ -154,6 +191,7 @@ class ClientGroups extends Component {
         return (
             <React.Fragment>
                 <Container fluid>
+                    {/* ... (Header/Title Row remains unchanged) ... */}
                     <div className="page-title-box">
                         <Row className="align-items-center">
                             <Col sm="6">
@@ -166,7 +204,7 @@ class ClientGroups extends Component {
                         <Col sm="12" lg="4">
                             <Card>
                                 <CardBody>
-
+                                    {/* ... (Form remains unchanged) ... */}
                                     <AvForm onValidSubmit={this.addClientGroup}>
                                         <AvField name="group_name" label="GROUP NAME"
                                             type="text" errorMessage="Enter Group Name"
@@ -207,18 +245,34 @@ class ClientGroups extends Component {
                                 <CardBody>
                                     <h4 className="mt-0 header-title">CLIENT GROUP</h4>
 
-                                    <MDBDataTable
+                                    {/* --- KEY CHANGE (MDBDATATABLE REPLACEMENT) --- */}
+                                    {/* <MDBDataTable
                                         responsive
                                         striped
                                         data={this.state.tableData}
-                                    />
+                                    /> */}
+                                    <Box sx={{ height: 400, width: '100%' }}>
+                                      <DataGrid
+                                        rows={this.state.rows}
+                                        columns={this.state.columns}
+                                        pageSize={5}
+                                        rowsPerPageOptions={[5, 10, 20]}
+                                        // DataGrid will use the 'id' field from your data automatically
+                                        getRowId={(row) => row.id} 
+                                        disableSelectionOnClick
+                                      />
+                                    </Box>
+                                    {/* --- END KEY CHANGE --- */}
                                 </CardBody>
                             </Card>
                         </Col>
 
                     </Row>
 
-                    {this.state.success_msg &&
+                    {/* --- KEY CHANGE (SWEETALERT BLOCK DELETED) --- */}
+                    {/* The old <SweetAlert> component is DELETED from the render method.
+                        It is now triggered as a function call in 'addClientGroup'. */}
+                    {/* {this.state.success_msg &&
                         <SweetAlert
                             style={{margin: 'inherit'}}
                             title={this.state.success_message}
@@ -226,9 +280,11 @@ class ClientGroups extends Component {
                             confirmBtnBsStyle="success"
                             onConfirm={() => this.setState({ success_msg: false })} >
                         </SweetAlert> 
-                    }
+                    } */}
+                    {/* --- END KEY CHANGE --- */}
 
                     <Modal centered isOpen={this.state.modal_delete} toggle={this.tog_delete} >
+                        {/* ... (This is a Reactstrap Modal, NOT SweetAlert. It remains unchanged.) ... */}
                         <ModalBody>
                             <button type="button" onClick={() => this.setState({ modal_delete: false })} className="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>

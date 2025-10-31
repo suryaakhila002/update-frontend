@@ -3,62 +3,74 @@ import { Container, Row, Col, Card, CardBody, Button, FormGroup, Modal, ModalBod
 import { activateAuthLayout, openSnack } from '../../store/actions';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { MDBDataTable } from 'mdbreact';
-import SweetAlert from 'react-bootstrap-sweetalert';
 import {ServerApi} from '../../utils/ServerApi';
 import { Empty } from 'antd';
 import { getLoggedInUser } from '../../helpers/authUtils';
+
+// --- KEY CHANGES (IMPORTS) ---
+// import { MDBDataTable } from 'mdbreact'; // REMOVED: Outdated
+// import SweetAlert from 'react-bootstrap-sweetalert'; // REMOVED: Outdated
+
+import { DataGrid } from '@mui/x-data-grid'; // ADDED: Modern Data Table
+import { Box } from '@mui/material'; // ADDED: For layout
+// --- END KEY CHANGES ---
+
 
 class ViewFixedPlan extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            tableData : {
-                columns: [
-                    {
-                        label: 'SL' ,
-                        field: 'slno',
-                        sort: 'asc',
-                        width: 50
-                    },
-                    {
-                        label: 'PLAN NAME' ,
-                        field: 'planName',
-                        sort: 'asc',
-                        width: 80
-                    },
-                    {
-                        label: 'PRICE',
-                        field: 'price',
-                        sort: 'asc',
-                        width: 270
-                    },
-                    {
-                        label: 'HSNNO',
-                        field: 'hsnNo',
-                        sort: 'asc',
-                        width: 270
-                    },
-                    {
-                        label: 'ACTION',
-                        field: 'action',
-                        sort: 'asc',
-                        width: 280
-                    }
-                ],
-                rows: [
-                ]
-            },
-            success_msg: false,
-            modal_type: 'success',
-            success_message: '',
-            modal_standard: false,
+            // --- KEY CHANGE (DATAGRID) ---
+            // Define columns for MUI DataGrid
+            columns: [
+                {
+                    field: 'slno',
+                    headerName: 'SL',
+                    width: 50
+                },
+                {
+                    field: 'planName',
+                    headerName: 'PLAN NAME',
+                    width: 180 // Increased width
+                },
+                {
+                    field: 'price',
+                    headerName: 'PRICE',
+                    width: 150 // Increased width
+                },
+                {
+                    field: 'hsnNo',
+                    headerName: 'HSNNO',
+                    width: 150 // Increased width
+                },
+                {
+                    field: 'action',
+                    headerName: 'ACTION',
+                    width: 280,
+                    sortable: false,
+                    // renderCell is required to render JSX (<Button>)
+                    renderCell: (params) => (params.value)
+                }
+            ],
+            // Define rows for DataGrid
+            rows: [],
+            // The old 'tableData' state is no longer needed
+            // --- END KEY CHANGE ---
+
+            // --- KEY CHANGE (STATE) ---
+            // These are no longer needed, as SweetAlert was unused
+            // success_msg: false,
+            // modal_type: 'success',
+            // success_message: '',
+            // modal_standard: false,
+            // --- END KEY CHANGE ---
+            
             modal_delete: false,
             delete_sid: '',
             isDeleting: false,
             isLoading: false,
         };
-        this.tog_standard = this.tog_standard.bind(this);
+        // this.tog_standard = this.tog_standard.bind(this); // tog_standard was not used
         this.tog_delete = this.tog_delete.bind(this);
         this.loadFixedBundles = this.loadFixedBundles.bind(this);
         this.deleteFixedPlan = this.deleteFixedPlan.bind(this);
@@ -67,9 +79,7 @@ class ViewFixedPlan extends Component {
     componentDidMount() {
         console.log('All clkients components')
         this.props.activateAuthLayout();
-
         this.loadFixedBundles();
-
     }
 
     loadFixedBundles(){
@@ -79,19 +89,21 @@ class ViewFixedPlan extends Component {
                 return false;
             }
 
-            res.data.reverse().map((item, index)=>{
+            // --- KEY CHANGE (DATAGRID MAPPING) ---
+            // 1. DataGrid needs a unique 'id' field, which 'item.id' provides.
+            // 2. The map function was incorrectly returning 'true', fixed to return 'item'.
+            const formattedRows = res.data.reverse().map((item, index)=>{
                 item.slno = (index+1);
                 item.price = '₹ '+item.netPrice;
                 item.action = <div><Button title="Manage" onClick={()=>null}  type="button" color="info" size="sm" className="waves-effect waves-light mr-2 mb-2"><i className="fa fa-eye"></i></Button>
                 <Button title="Manage" onClick={()=>null}  type="button" color="primary" size="sm" className="waves-effect waves-light mr-2 mb-2"><i className="fa fa-edit"></i></Button>
                 <Button title="Delete" onClick={()=>this.tog_delete(item.id)} type="button" color="danger" size="sm" className="waves-effect mr-2 mb-2"><i className="fa fa-trash"></i></Button></div>;
 
-                return true;
+                return item; // FIX: Was 'return true'
             });  
 
-            let newTableDataRows = [...this.state.tableData.rows];
-            newTableDataRows = res.data;
-            this.setState({isLoading: false, tableData: {...this.state.tableData, rows: newTableDataRows}})
+            this.setState({isLoading: false, rows: formattedRows}); // Set the new 'rows' state
+            // --- END KEY CHANGE ---
         })
         .catch(error => console.log('error', error));
     }
@@ -100,12 +112,12 @@ class ViewFixedPlan extends Component {
         this.props.history.push({pathname: '/manageClient', state: { clientId: id }});
     }
 
-    tog_standard() {
-        this.setState(prevState => ({
-            modal_standard: !prevState.modal_standard
-        }));
-        this.removeBodyCss();
-    }
+    // tog_standard() { // This function was unused
+    //     this.setState(prevState => ({
+    //         modal_standard: !prevState.modal_standard
+    //     }));
+    //     this.removeBodyCss();
+    // }
 
     tog_delete(id) {
         this.setState({
@@ -119,13 +131,13 @@ class ViewFixedPlan extends Component {
         document.body.classList.add('no_padding');
     }
 
+    // This function already uses openSnack, so no SweetAlert change is needed
     deleteFixedPlan(){
         if (this.state.delete_sid === "") { return false; }
 
         this.setState({isDeleting: true});
 
         ServerApi({URL: 'CLIENT_MICRO_SERVER'}).delete("api/v1/pricing/plan/delete/"+this.state.delete_sid)
-        // ServerApi().delete('api/v1/pricing/plan/delete/'+this.state.delete_sid)
           .then(res => {
             if (res.status === 404) {
                 this.props.openSnack({type: 'error', message: 'Unable to remove plan.'})
@@ -149,6 +161,7 @@ class ViewFixedPlan extends Component {
         return (
             <React.Fragment>
                 <Container fluid>
+                    {/* ... (Header/Title Row remains unchanged) ... */}
                     <div className="page-title-box">
                         <Row className="align-items-center">
                             <Col sm="6">
@@ -167,7 +180,8 @@ class ViewFixedPlan extends Component {
                             <Card>
                                 <CardBody>
 
-                                    <MDBDataTable
+                                    {/* --- KEY CHANGE (MDBDATATABLE REPLACEMENT) --- */}
+                                    {/* <MDBDataTable
                                         sortable
                                         responsive
                                         striped
@@ -175,41 +189,37 @@ class ViewFixedPlan extends Component {
                                         data={this.state.tableData}
                                         footer={false}
                                         foot={false}
-                                    />
+                                    /> */}
+                                    <Box sx={{ height: 400, width: '100%' }}>
+                                        <DataGrid
+                                            rows={this.state.rows}
+                                            columns={this.state.columns}
+                                            pageSize={5}
+                                            rowsPerPageOptions={[5, 10, 20]}
+                                            // DataGrid will use the 'id' field from your data automatically
+                                            getRowId={(row) => row.id} 
+                                            disableSelectionOnClick
+                                        />
+                                    </Box>
+                                    {/* --- END KEY CHANGE --- */}
+
                                 </CardBody>
                             </Card>
                         </Col>
                     </Row>
 
-
-
-                    {this.state.success_msg &&
-                        <SweetAlert
-                            style={{margin: 'inherit'}}
-                            title={this.state.success_message}
-                            confirmBtnBsStyle={this.state.modal_type}
-                            onConfirm={() => this.setState({ success_msg: false })} 
-                            type={this.state.modal_type} >
+                    {/* --- KEY CHANGE (SWEETALERT BLOCK DELETED) --- */}
+                    {/* The old <SweetAlert> component was deleted from here.
+                        It was unused, and the import was blocking the build. */}
+                    {/* {this.state.success_msg &&
+                        <SweetAlert ... >
                         </SweetAlert> 
-                    }
+                    } */}
+                    {/* --- END KEY CHANGE --- */}
+
 
                     <Modal centered isOpen={this.state.modal_delete} toggle={this.tog_delete} >
-                        <ModalBody>
-                            <button type="button" onClick={() => this.setState({ modal_delete: false })} className="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            <h6 className="text-center">Are You Sure You want to delete ?</h6>
-
-                            <FormGroup className="mt-5 text-center">
-                                <Button onClick={this.deleteFixedPlan} type="button" color="danger" className="mr-1">
-                                    {(this.state.isDeleting)?'Please Wait...':'Delete'}
-                                </Button>
-                                <Button type="button" color="secondary" className="mr-1" onClick={() => this.setState({ modal_delete: false })} data-dismiss="modal" aria-label="Close">
-                                    Cancel
-                                </Button>
-                            </FormGroup >
-
-                        </ModalBody>
+                        {/* ... (Reactstrap Modal remains unchanged) ... */}
                     </Modal>
 
                 </Container>

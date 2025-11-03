@@ -1,7 +1,7 @@
 
 import React, { Component } from 'react';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
-import { Link, withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 // users
 import logoLight from "../../../images/ATSSMSANDIVRLOGO.png";
@@ -15,7 +15,7 @@ class ProfileMenu extends Component {
             menu: false,
         };
         this.toggle = this.toggle.bind(this);
-        this.myProfile = this.myProfile.bind(this);
+        // this.myProfile = this.myProfile.bind(this);
     }
 
     toggle() {
@@ -24,9 +24,9 @@ class ProfileMenu extends Component {
         }));
     }
 
-    myProfile() {        
-        this.props.history.push({pathname: '/profile', state: { user: true, clientId: getLoggedInUser().id }});
-    }
+    // myProfile() {
+    //     this.props.history.push({pathname: '/profile', state: { user: true, clientId: getLoggedInUser().id }});
+    // }
 
     render() {
         return (
@@ -37,7 +37,9 @@ class ProfileMenu extends Component {
                         <span><i className="mt-1 ti-user float-right"></i></span>
                     </DropdownToggle>
                     <DropdownMenu className="profile-dropdown" right>
-                        <DropdownItem tag="a" onClick={()=>this.myProfile()}><i className="mdi mdi-account-circle m-r-5"></i> Update Profile</DropdownItem>
+                        <Link to={{ pathname: '/profile', state: { user: true, clientId: getLoggedInUser().id } }}>
+                          <DropdownItem tag="a"><i className="mdi mdi-account-circle m-r-5"></i> Update Profile</DropdownItem>
+                        </Link>
                         <Link to="/changePassword"><DropdownItem ><i className="mdi mdi-settings m-r-5"></i> Change Password</DropdownItem></Link>
                         <div className="dropdown-divider"></div>
                         <Link to="/logout"><DropdownItem className="text-danger"><i className="mdi mdi-power text-danger"></i> Logout</DropdownItem></Link>
@@ -48,4 +50,4 @@ class ProfileMenu extends Component {
     }
 }
 
-export default withRouter(ProfileMenu);
+export default ProfileMenu;

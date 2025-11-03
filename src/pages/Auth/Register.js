@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { registerUser, emptyError } from '../../store/actions';
 import logosm from '../../images/logo.png';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+import { FormControl } from '@mui/material';
+
 
 class Pagesregister extends Component {
 
@@ -45,7 +46,7 @@ class Pagesregister extends Component {
                             {this.props.registrationError && <Alert color="danger">
                                 {this.props.registrationError}</Alert>}
 
-                            <AvForm className="form-horizontal m-t-30" onValidSubmit={this.handleSubmit} >
+                            <FormControl className="form-horizontal m-t-30" onValidSubmit={this.handleSubmit} >
                                 <AvField name="username" label="Username" value={this.state.username} placeholder="Enter Username" type="text" required />
                                 <AvField name="email" label="Email" value={this.state.email} placeholder="Enter Email" type="email" required />
                                 <AvField name="password" label="Password" value={this.state.password} placeholder="Enter Password" type="password" required />
@@ -63,7 +64,7 @@ class Pagesregister extends Component {
                                     </Col>
                                 </Row>
 
-                            </AvForm>
+                            </FormControl>
 
                         </div>
                     </Card>

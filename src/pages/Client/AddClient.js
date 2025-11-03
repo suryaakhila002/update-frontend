@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Label, textarea } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { AvForm, AvField, AvGroup } from 'availity-reactstrap-validation';
-import { Link, withRouter } from 'react-router-dom';
+import { FormControl, AvField, AvGroup } from 'availity-reactstrap-validation';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Select from 'react-select';
 import Countries from '../../utils/Countries';
@@ -406,9 +406,9 @@ class AddClient extends Component {
                             {/* ... (Stepper JSX remains unchanged) ... */}
                             <Card>
                                 <CardBody>
-                                    <AvForm onValidSubmit={this.addNewClient} mode={defaultValues} ref={c => (this.form = c)}>
-                                        {/* ... (All AvForm fields remain unchanged) ... */}
-                                    </AvForm>
+                                    <FormControl onValidSubmit={this.addNewClient} mode={defaultValues} ref={c => (this.form = c)}>
+                                        {/* ... (All FormControl fields remain unchanged) ... */}
+                                    </FormControl>
                                 </CardBody>
                             </Card>
                         </Col>
@@ -417,9 +417,9 @@ class AddClient extends Component {
                         <Col lg="6">
                             <Card>
                                 <CardBody>
-                                    <AvForm onValidSubmit={this.addNewClient} mode={defaultValues} ref={c => (this.form1 = c)}>
-                                        {/* ... (All AvForm fields in the second column remain unchanged) ... */}
-                                    </AvForm>
+                                    <FormControl onValidSubmit={this.addNewClient} mode={defaultValues} ref={c => (this.form1 = c)}>
+                                        {/* ... (All FormControl fields in the second column remain unchanged) ... */}
+                                    </FormControl>
                                 </CardBody>
                             </Card>
                         </Col>
@@ -449,4 +449,4 @@ class AddClient extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(AddClient));
+export default connect(null, { activateAuthLayout })(AddClient);

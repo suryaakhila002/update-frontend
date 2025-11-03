@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Label, Button, Modal, ModalBody } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
 import Select from 'react-select';
-import { withRouter } from 'react-router-dom';
-import { AvForm } from 'availity-reactstrap-validation';
+// import { withRouter } from 'react-router-dom';
+import { FormControl } from 'availity-reactstrap-validation';
 import { connect } from 'react-redux';
 
 // --- KEY CHANGES (IMPORTS) ---
@@ -173,9 +173,9 @@ class ManageTicket extends Component {
                             <Card>
                                 <CardBody>
                                     <h4 className="mt-0 header-title">CHANGE BASIC INFO</h4>
-                                    <AvForm onValidSubmit={this.addClientGroup}>
-                                        {/* ... (All AvForm fields remain unchanged) ... */}
-                                    </AvForm>
+                                    <FormControl onValidSubmit={this.addClientGroup}>
+                                        {/* ... (All FormControl fields remain unchanged) ... */}
+                                    </FormControl>
                                 </CardBody>
                             </Card>
                         </Col>
@@ -215,4 +215,4 @@ class ManageTicket extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(ManageTicket));
+export default connect(null, { activateAuthLayout })(ManageTicket);

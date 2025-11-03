@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button, FormGroup, Modal, ModalBody } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {ServerApi} from '../../utils/ServerApi';
 // import { Table } from 'antd';
 import {Tag} from 'antd';
 import {getLoggedInUser} from '../../helpers/authUtils';
-// import { AvForm, AvField } from 'availity-reactstrap-validation'; // This was commented out, leaving as-is
+//  // This was commented out, leaving as-is
 
 // --- KEY CHANGES (IMPORTS) ---
 // import { MDBDataTable } from 'mdbreact'; // REMOVED: Outdated
@@ -278,4 +278,4 @@ class AllSupportTickets extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(AllSupportTickets));
+export default connect(null, { activateAuthLayout })(AllSupportTickets);

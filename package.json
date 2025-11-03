@@ -29,7 +29,6 @@
     "react-apexcharts": "^1.8.0",
     "react-datepicker": "^8.8.0",
     "react-dom": "^19.1.1",
-    "react-dropdown": "^1.11.0",
     "react-dropzone": "^14.3.8",
     "react-lottie": "^1.2.10",
     "react-maskinput": "^3.2.0",
@@ -41,6 +40,7 @@
     "react-top-loading-bar": "^3.0.2",
     "reactstrap": "^9.2.3",
     "recharts": "^3.3.0",
+    "redux-saga": "^1.4.2",
     "sass": "^1.93.2",
     "sweetalert2": "^11.26.3",
     "sweetalert2-react-content": "^5.1.0"

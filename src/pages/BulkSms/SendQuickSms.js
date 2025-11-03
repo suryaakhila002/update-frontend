@@ -2,8 +2,7 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button, Label } from 'reactstrap';
 import { activateAuthLayout, openSnack, updateSmsBalance, getSmsBalance } from '../../store/actions';
-import { AvForm } from 'availity-reactstrap-validation';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -28,6 +27,7 @@ import TemplateMessageBox from '../../components/LanguageTransliterate/TemplateM
 // import SweetAlert from 'react-bootstrap-sweetalert'; // REMOVED: Outdated
 import Swal from 'sweetalert2'; // ADDED: Modern Alert Library
 import withReactContent from 'sweetalert2-react-content'; // ADDED: React wrapper
+import { FormControl } from '@mui/material';
 // --- END KEY CHANGES ---
 
 // Initialize SweetAlert2
@@ -380,7 +380,7 @@ class SendQuickSms extends Component {
                             <Card>
                                 <CardBody>
 
-                                    <AvForm onValidSubmit={this.sendSms} ref={c => (this.form = c)}>
+                                    <FormControl onValidSubmit={this.sendSms} ref={c => (this.form = c)}>
                                         {/* ... (Form JSX remains unchanged) ... */}
                                         <Row className="mb-2">
                                             {getLoggedInUser().userType !== 'RESELLER' && getLoggedInUser().userType !== 'CLIENT' && (
@@ -456,7 +456,7 @@ class SendQuickSms extends Component {
                                                 {/* (saveDraft button remains unchanged) */}
                                             </div>
                                         </div>
-                                    </AvForm>
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -497,4 +497,4 @@ const mapStatetoProps = state => {
     return { sms_balance, sms_type };
   }
   
-export default withRouter(connect(mapStatetoProps, { activateAuthLayout, openSnack, updateSmsBalance, getSmsBalance })(SendQuickSms));
+export default connect(mapStatetoProps, { activateAuthLayout, openSnack, updateSmsBalance, getSmsBalance })(SendQuickSms);

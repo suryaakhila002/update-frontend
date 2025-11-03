@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody } from 'reactstrap';
 import { activateNonAuthLayout } from '../../store/actions';
-import { Link, withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 //Images
@@ -58,4 +58,4 @@ class Error404 extends Component {
 const mapStatetoProps = state => {
     return {};
 }
-export default withRouter(connect(mapStatetoProps, { activateNonAuthLayout })(Error404));
+export default connect(mapStatetoProps, { activateNonAuthLayout })(Error404);

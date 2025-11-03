@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button, FormGroup, Label, Table } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {ServerApi} from '../../utils/ServerApi';
 import { Empty, Tag } from 'antd';
 import { getLoggedInUser } from '../../helpers/authUtils';
 import {Button as MuiButton} from '@mui/material'; // Renamed to avoid conflict with reactstrap Button
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+
 import Select from 'react-select';
 
 // --- KEY CHANGES (IMPORTS) ---
@@ -245,9 +245,9 @@ class BuyUnit extends Component {
                         <Col lg="5">
                             <Card>
                                 <CardBody>
-                                    <AvForm onValidSubmit={this.purchase} ref={c => (this.form = c)}>
-                                        {/* ... (All AvForm fields remain unchanged) ... */}
-                                    </AvForm>
+                                    <FormControl onValidSubmit={this.purchase} ref={c => (this.form = c)}>
+                                        {/* ... (All FormControl fields remain unchanged) ... */}
+                                    </FormControl>
                                 </CardBody>
                             </Card>
                         </Col>
@@ -305,4 +305,4 @@ class BuyUnit extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(BuyUnit));
+export default connect(null, { activateAuthLayout })(BuyUnit);

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button, FormGroup, Modal, ModalBody } from 'reactstrap';
 import { activateAuthLayout, openSnack } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+// import { withRouter } from 'react-router-dom';
+
 import { connect } from 'react-redux';
 import {ServerApi} from '../../utils/ServerApi';
 import {Tag} from 'antd';
@@ -314,4 +314,4 @@ class SmsRoutes extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout, openSnack })(SmsRoutes));
+export default connect(null, { activateAuthLayout, openSnack })(SmsRoutes);

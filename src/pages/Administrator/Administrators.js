@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Label, Button, Modal, ModalBody } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
 import Select from 'react-select';
-import { withRouter } from 'react-router-dom';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+// import { withRouter } from 'react-router-dom';
+
 import { connect } from 'react-redux';
 
 // --- KEY CHANGES (IMPORTS) ---
@@ -11,7 +11,7 @@ import { connect } from 'react-redux';
 // import SweetAlert from 'react-bootstrap-sweetalert'; // REMOVED: Outdated
 
 import { DataGrid } from '@mui/x-data-grid'; // ADDED: Modern Data Table
-import { Box } from '@mui/material'; // ADDED: For layout
+import { Box, FormControl } from '@mui/material'; // ADDED: For layout
 import Swal from 'sweetalert2'; // ADDED: Modern Alert Library
 import withReactContent from 'sweetalert2-react-content'; // ADDED: React wrapper
 // --- END KEY CHANGES ---
@@ -250,7 +250,7 @@ class Administrators extends Component {
                                     {/* ... (The form code remains unchanged) ... */}
                                     <h4 className="mt-0 header-title">Add Administrator</h4>
 
-                                    <AvForm onValidSubmit={this.addClientGroup}>
+                                    <FormControl onValidSubmit={this.addClientGroup}>
                                         <AvField name="group_name" label="First NAME"
                                             type="text" errorMessage="Enter First Name"
                                             validate={{ required: { value: true } }} />
@@ -301,7 +301,7 @@ class Administrators extends Component {
                                
                                        </FormGroup>
 
-                                    </AvForm>
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -380,4 +380,4 @@ class Administrators extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(Administrators));
+export default connect(null, { activateAuthLayout })(Administrators);

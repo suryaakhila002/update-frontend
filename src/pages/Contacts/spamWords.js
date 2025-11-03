@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Button } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+// import { withRouter } from 'react-router-dom';
+
 import { connect } from 'react-redux';
 
 // --- KEY CHANGES (IMPORTS) ---
@@ -87,7 +87,7 @@ class SpamWords extends Component {
                                 <CardBody>
                                     <h5 className="mt-0 header-title">ADD NEW WORD</h5>
 
-                                    <AvForm>
+                                    <FormControl>
                                         <FormGroup>
                                             <AvField name="spam_words" label="SPAM WORDS"
                                             type="text"  
@@ -103,7 +103,7 @@ class SpamWords extends Component {
                                
                                        </FormGroup>
 
-                                    </AvForm>
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -145,4 +145,4 @@ class SpamWords extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(SpamWords));
+export default connect(null, { activateAuthLayout })(SpamWords);

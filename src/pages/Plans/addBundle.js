@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 // import Select from 'react-select';
 import {ServerApi} from '../../utils/ServerApi';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+
 import {getLoggedInUser} from '../../helpers/authUtils';
 
 // --- KEY CHANGES (IMPORTS) ---
@@ -143,8 +143,8 @@ class AddBundle extends Component {
                         <Col md="8">
                             <Card>
                                 <CardBody>
-                                    <AvForm onValidSubmit={this.addBundle} ref={c => (this.form = c)}>
-                                        {/* ... (All AvForm fields remain unchanged) ... */}
+                                    <FormControl onValidSubmit={this.addBundle} ref={c => (this.form = c)}>
+                                        {/* ... (All FormControl fields remain unchanged) ... */}
                                         <Row> 
                                             <Col lg="10" sm="12" className="mb-3">
                                                 <AvField name="planName" label="PLAN NAME"
@@ -219,7 +219,7 @@ class AddBundle extends Component {
                                         <Button size="sm" onClick={this.handleAddRow} color="info"><i className="fa fa-plus"></i> Add  More</Button>
                                         <Button size="sm" type="submit" color="success" className="ml-2"> <i className="fa fa-check mr-1"></i> Save </Button>
                                         
-                                    </AvForm>
+                                    </FormControl>
                                 </CardBody>
                             </Card>
                         </Col>
@@ -245,4 +245,4 @@ class AddBundle extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(AddBundle));
+export default connect(null, { activateAuthLayout })(AddBundle);

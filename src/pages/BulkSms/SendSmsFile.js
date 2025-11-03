@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Button, Label, Table } from 'reactstrap';
 import { activateAuthLayout, openSnack, updateSmsBalance, getSmsBalance } from '../../store/actions';
-import { AvForm} from 'availity-reactstrap-validation';
-import { Link, withRouter } from 'react-router-dom';
+import { FormControl} from 'availity-reactstrap-validation';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -438,7 +438,7 @@ class SendSmsFile extends Component {
                             <Card>
                                 <CardBody>
 
-                                    <AvForm onValidSubmit={this.sendSms} ref={c => (this.form = c)}>
+                                    <FormControl onValidSubmit={this.sendSms} ref={c => (this.form = c)}>
                                         <FormGroup className="mb-3">
                                             {/* ... (Dropzone JSX remains unchanged) ... */}
                                         </FormGroup>
@@ -464,7 +464,7 @@ class SendSmsFile extends Component {
                                             {/* ... (Buttons remain unchanged) ... */}
                                         </div>
 
-                                    </AvForm>
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -513,4 +513,4 @@ const mapStatetoProps = state => {
     return { sms_balance, sms_type };
   }
   
-export default withRouter(connect(mapStatetoProps, { activateAuthLayout, openSnack, updateSmsBalance, getSmsBalance })(SendSmsFile));
+export default connect(mapStatetoProps, { activateAuthLayout, openSnack, updateSmsBalance, getSmsBalance })(SendSmsFile);

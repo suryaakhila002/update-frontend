@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 // --- KEY CHANGES (IMPORTS) ---
@@ -144,4 +144,4 @@ class AllInvoices extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(AllInvoices));
+export default connect(null, { activateAuthLayout })(AllInvoices);

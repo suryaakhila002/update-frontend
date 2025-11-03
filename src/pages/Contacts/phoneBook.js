@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button, FormGroup } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+// import { withRouter } from 'react-router-dom';
+
 import { connect } from 'react-redux';
 
 // --- KEY CHANGES (IMPORTS) ---
@@ -78,7 +78,7 @@ class PhoneBook extends Component {
                                 <CardBody>
                                     <h4 className="mt-0 header-title">ADD NEW LIST</h4>
 
-                                    <AvForm>
+                                    <FormControl>
                                         <AvField name="list_name" label="LIST NAME"
                                             type="text" errorMessage="Enter List Name"
                                             validate={{ required: { value: true } }} />
@@ -92,7 +92,7 @@ class PhoneBook extends Component {
                                
                                        </FormGroup>
 
-                                    </AvForm>
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -134,4 +134,4 @@ class PhoneBook extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(PhoneBook));
+export default connect(null, { activateAuthLayout })(PhoneBook);

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Button, Label } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
-import { withRouter } from 'react-router-dom';
+
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -217,9 +217,9 @@ class CreateNewTicket extends Component {
                             <Card>
                                 <CardBody>
 
-                                    <AvForm onValidSubmit={this.sendSms} ref={c => (this.form = c)}>
-                                        {/* ... (All AvForm fields remain unchanged) ... */}
-                                    </AvForm>
+                                    <FormControl onValidSubmit={this.sendSms} ref={c => (this.form = c)}>
+                                        {/* ... (All FormControl fields remain unchanged) ... */}
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -246,4 +246,4 @@ class CreateNewTicket extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(CreateNewTicket));
+export default connect(null, { activateAuthLayout })(CreateNewTicket);

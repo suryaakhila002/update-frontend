@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Button, Label } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
-import { withRouter } from 'react-router-dom';
+
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Select from 'react-select';
 
@@ -85,7 +85,7 @@ class AddNewKeywoard extends Component {
 
                                     <h4 className="mt-0 header-title">ADD NEW KEYWORD</h4>
 
-                                    <AvForm>
+                                    <FormControl>
                                         <AvField name="title" label="TITLE"
                                             type="text" errorMessage="Enter The Title"
                                             validate={{ required: { value: true } }} />
@@ -145,7 +145,7 @@ class AddNewKeywoard extends Component {
                                             </div>
                                         </FormGroup>
 
-                                    </AvForm>
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -159,4 +159,4 @@ class AddNewKeywoard extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(AddNewKeywoard));
+export default connect(null, { activateAuthLayout })(AddNewKeywoard);

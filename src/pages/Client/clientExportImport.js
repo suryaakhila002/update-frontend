@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Label, Button } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
 import Select from 'react-select';
-import {  withRouter } from 'react-router-dom';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+// import {  withRouter } from 'react-router-dom';
+
 import { connect } from 'react-redux';
 
 const CLIENT_GROUP_STATUS = [
@@ -94,7 +94,7 @@ class ClientExportImport extends Component {
                                 <CardBody>
                                     <h4 className="mt-0 header-title">IMPORT CLIENT</h4>
 
-                                    <AvForm>
+                                    <FormControl>
 
                                         <FormGroup>
                                             <Label>CLIENT GROUP</Label>
@@ -155,7 +155,7 @@ class ClientExportImport extends Component {
                                             </div>
                                         </FormGroup>
 
-                                    </AvForm>                                
+                                    </FormControl>                                
                                 </CardBody>
                             </Card>
                         </Col>
@@ -167,4 +167,4 @@ class ClientExportImport extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(ClientExportImport));
+export default connect(null, { activateAuthLayout })(ClientExportImport);

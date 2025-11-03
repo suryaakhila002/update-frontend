@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Label } from 'reactstrap';
 import { activateAuthLayout, openSnack } from '../../store/actions';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
-import { withRouter } from 'react-router-dom';
+
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Select from 'react-select';
 import {getLoggedInUser} from '../../helpers/authUtils';
@@ -200,9 +200,9 @@ class UpdateSmsTemplate extends Component {
                         <Col lg="7">
                             <Card>
                                 <CardBody>
-                                    <AvForm onValidSubmit={this.addSmsTemplate} mode={defaultValues} ref={c => (this.form = c)}>
-                                        {/* ... (All AvForm fields remain unchanged) ... */}
-                                    </AvForm>
+                                    <FormControl onValidSubmit={this.addSmsTemplate} mode={defaultValues} ref={c => (this.form = c)}>
+                                        {/* ... (All FormControl fields remain unchanged) ... */}
+                                    </FormControl>
                                 </CardBody>
                             </Card>
                         </Col>
@@ -233,4 +233,4 @@ class UpdateSmsTemplate extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout, openSnack })(UpdateSmsTemplate));
+export default connect(null, { activateAuthLayout, openSnack })(UpdateSmsTemplate);

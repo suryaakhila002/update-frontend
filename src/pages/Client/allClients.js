@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button, FormGroup, Modal, ModalBody } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Tag, Empty } from 'antd';
 import { getLoggedInUser } from '../../helpers/authUtils';
@@ -323,4 +323,4 @@ class AllClients extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(AllClients));
+export default connect(null, { activateAuthLayout })(AllClients);

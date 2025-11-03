@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import LanguageMenu from './Menus/languageMenu';
-import { Link } from 'react-router-dom';
 import ProfileMenu from './Menus/profileMenu';
 import {getLoggedInUser} from '../../helpers/authUtils';
-import { withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { isLarge } from '../../store/actions';
 import { connect } from 'react-redux';
 
@@ -173,7 +172,7 @@ class Topbar extends Component {
                         right: '20px',
                         zIndex: '999',
                         boxShadow: '0px 6px 10px 0px rgba(0,0,0,0.14), 0px 1px 18px 0px rgba(0,0,0,0.12)'}}
-                        severity="warning">Please Update DLT No. To Continue. <Button size="small" onClick={()=>this.props.history.push('/profile')}>Update</Button></Alert>
+                        severity="warning">Please Update DLT No. To Continue. <Link to="/profile"><Button size="small">Update</Button></Link></Alert>
                 )}
 
             </React.Fragment>
@@ -188,4 +187,4 @@ const mapStatetoProps = state => {
 }
 
 
-export default withRouter(connect(mapStatetoProps, { isLarge })(Topbar));
+export default connect(mapStatetoProps, { isLarge })(Topbar);

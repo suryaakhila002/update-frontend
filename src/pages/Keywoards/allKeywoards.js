@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 // --- KEY CHANGES (IMPORTS) ---
@@ -130,4 +130,4 @@ class AllKeywoards extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(AllKeywoards));
+export default connect(null, { activateAuthLayout })(AllKeywoards);

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {Tag} from 'antd';
 import {ServerApi} from '../../utils/ServerApi';
@@ -286,4 +286,4 @@ class SmsReport extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(SmsReport));
+export default connect(null, { activateAuthLayout })(SmsReport);

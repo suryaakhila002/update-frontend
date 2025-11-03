@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Modal, ModalBody } from 'reactstrap';
 import { activateAuthLayout, openSnack } from '../../store/actions';
 // import Select from 'react-select';
-import {  withRouter } from 'react-router-dom';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+// import {  withRouter } from 'react-router-dom';
+
 import { connect } from 'react-redux';
 // import SweetAlert from 'react-bootstrap-sweetalert'; // DELETED: Unused and build-blocking
 import {ServerApi} from '../../utils/ServerApi';
@@ -110,9 +110,9 @@ class AddPricePlan extends Component {
                             <Card>
                                 <CardBody>
 
-                                    <AvForm ref={c => (this.form = c)} onValidSubmit={this.addPlan}>
-                                        {/* ... (All AvForm fields remain unchanged) ... */}
-                                    </AvForm>
+                                    <FormControl ref={c => (this.form = c)} onValidSubmit={this.addPlan}>
+                                        {/* ... (All FormControl fields remain unchanged) ... */}
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -140,4 +140,4 @@ class AddPricePlan extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout, openSnack })(AddPricePlan));
+export default connect(null, { activateAuthLayout, openSnack })(AddPricePlan);

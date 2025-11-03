@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Coverages from '../../utils/Coverages';
 
@@ -154,4 +154,4 @@ class Coverage extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(Coverage));
+export default connect(null, { activateAuthLayout })(Coverage);

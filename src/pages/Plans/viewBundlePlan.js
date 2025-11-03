@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button, FormGroup, Modal, ModalBody, Table } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {ServerApi} from '../../utils/ServerApi';
 import { Empty } from 'antd';
@@ -278,4 +278,4 @@ class viewBundlePlan extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(viewBundlePlan));
+export default connect(null, { activateAuthLayout })(viewBundlePlan);

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Button, Label, Alert, Table } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { AvForm, AvField, AvRadioGroup, AvRadio } from 'availity-reactstrap-validation';
-import { Link, withRouter } from 'react-router-dom';
+import { FormControl, AvField, AvRadioGroup, AvRadio } from 'availity-reactstrap-validation';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -276,7 +276,7 @@ class SendBulkSms extends Component {
 
             <Col sm="12">
 
-            <AvForm onValidSubmit={this.sendSms} ref={c => (this.form = c)}>
+            <FormControl onValidSubmit={this.sendSms} ref={c => (this.form = c)}>
                 <Label>SMS Gateway</Label>
                     <Select
                         className="mb-3"
@@ -400,7 +400,7 @@ class SendBulkSms extends Component {
                     </div>
                 </FormGroup>
 
-            </AvForm>
+            </FormControl>
             </Col>
             </Row>
         )
@@ -523,4 +523,4 @@ class SendBulkSms extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(SendBulkSms));
+export default connect(null, { activateAuthLayout })(SendBulkSms);

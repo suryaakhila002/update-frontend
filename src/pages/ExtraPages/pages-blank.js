@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Container, Row, Col } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Lottie from 'react-lottie';
 // import * as animationData from '../../assets/lottie/sms-sending.json';
@@ -58,5 +57,5 @@ class BlankPage extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(BlankPage));
+export default connect(null, { activateAuthLayout })(BlankPage);
 

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Button } from 'reactstrap';
 import { activateAuthLayout, openSnack } from '../../store/actions';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
-import { withRouter } from 'react-router-dom';
+
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {ServerApi} from '../../utils/ServerApi';
 // import {getLoggedInUser} from '../../helpers/authUtils';
@@ -92,9 +92,9 @@ class ChangePassword extends Component {
                         <Col lg="6">
                             <Card>
                                 <CardBody>
-                                    <AvForm onValidSubmit={this.changePassword} ref={c => (this.form = c)}>
-                                        {/* ... (All AvForm fields remain unchanged) ... */}
-                                    </AvForm>
+                                    <FormControl onValidSubmit={this.changePassword} ref={c => (this.form = c)}>
+                                        {/* ... (All FormControl fields remain unchanged) ... */}
+                                    </FormControl>
                                 </CardBody>
                             </Card>
                         </Col>
@@ -115,4 +115,4 @@ class ChangePassword extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout, openSnack })(ChangePassword));
+export default connect(null, { activateAuthLayout, openSnack })(ChangePassword);

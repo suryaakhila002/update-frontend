@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Button, Label } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
-import { withRouter } from 'react-router-dom';
+
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Select from 'react-select';
 
@@ -55,7 +55,7 @@ class KeywoardsSetting extends Component {
 
                                     <h4 className="mt-0 header-title">KEYWORD SETTINGS</h4>
 
-                                    <AvForm>
+                                    <FormControl>
                                         <Label>SHOW IN CLIENT</Label>
                                         <Select
                                             className="mb-3"
@@ -87,7 +87,7 @@ class KeywoardsSetting extends Component {
                                             </div>
                                         </FormGroup>
 
-                                    </AvForm>
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -101,4 +101,4 @@ class KeywoardsSetting extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(KeywoardsSetting));
+export default connect(null, { activateAuthLayout })(KeywoardsSetting);

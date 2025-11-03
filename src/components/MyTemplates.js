@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Col, Card, CardBody } from 'reactstrap';
-import { withRouter } from 'react-router-dom';
 import Popover from '@mui/material/Popover';
+import { connect } from 'react-redux';
 import Typography from '@mui/material/Typography';
 
 class MyTemplates extends Component {
@@ -69,4 +69,4 @@ class MyTemplates extends Component {
 }
   
 
-export default withRouter(MyTemplates);
+export default connect()(MyTemplates);

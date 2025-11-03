@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Button, Label } from 'reactstrap';
 import { activateAuthLayout, updateSmsBalance, getSmsBalance, openSnack } from '../../store/actions';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
-import { withRouter } from 'react-router-dom';
+
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 import DatePicker from "react-datepicker";
@@ -23,6 +23,7 @@ import SmsSending from '../../components/Loading/SmsSending';
 // import SweetAlert from 'react-bootstrap-sweetalert'; // REMOVED: Outdated
 import Swal from 'sweetalert2'; // ADDED: Modern Alert Library
 import withReactContent from 'sweetalert2-react-content'; // ADDED: React wrapper
+import { FormControl } from '@mui/material';
 // --- END KEY CHANGES ---
 
 // Initialize SweetAlert2
@@ -424,7 +425,7 @@ class SendGroupSms extends Component {
                             <Card>
                                 <CardBody>
 
-                                    <AvForm onValidSubmit={this.sendSms} ref={c => (this.form = c)}>
+                                    <FormControl onValidSubmit={this.sendSms} ref={c => (this.form = c)}>
                                         <Row className="mb-2">
                                         {getLoggedInUser().userType !== 'RESELLER' && getLoggedInUser().userType !== 'CLIENT' && (
                                             <Col md="12">
@@ -526,7 +527,7 @@ class SendGroupSms extends Component {
                                             </div>
                                         </div>
 
-                                    </AvForm>
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -568,4 +569,4 @@ const mapStatetoProps = state => {
     return { sms_balance, sms_type };
   }
   
-export default withRouter(connect(mapStatetoProps, { activateAuthLayout, updateSmsBalance, getSmsBalance, openSnack })(SendGroupSms));
+export default connect(mapStatetoProps, { activateAuthLayout, updateSmsBalance, getSmsBalance, openSnack })(SendGroupSms);

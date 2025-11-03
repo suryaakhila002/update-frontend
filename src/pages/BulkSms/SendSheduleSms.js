@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Button, Label, Alert } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { AvForm, AvField, AvRadioGroup, AvRadio } from 'availity-reactstrap-validation';
-import { Link, withRouter } from 'react-router-dom';
+import { FormControl, TextField, AvRadioGroup, AvRadio } from 'availity-reactstrap-validation';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Select from 'react-select';
+import { Input, TextField } from '@mui/material';
 
 const SMS_GATEWAY = [
     {
@@ -108,7 +109,7 @@ class SendSheduleSms extends Component {
 
                                     <h4 className="mt-0 header-title mb-2">SEND BULK SMS</h4>
 
-                                    <AvForm>
+                                    <FormControl>
                                             <Label>SMS GATEWAY</Label>
                                                 <Select
                                                     className="mb-3"
@@ -118,7 +119,7 @@ class SendSheduleSms extends Component {
                                                     options={SMS_GATEWAY}
                                                 />
 
-                                        <AvField name="title" label="SENDER ID"
+                                        <TextField name="title" label="SENDER ID"
                                             type="text" errorMessage="Enter The Title"
                                             validate={{ required: { value: true } }} />
                                             
@@ -132,7 +133,7 @@ class SendSheduleSms extends Component {
                                                     options={SMS_GATEWAY}
                                                 />
 
-                                        <AvField name="keyboard_name" label="RECIPIENTS"
+                                        <TextField name="keyboard_name" label="RECIPIENTS"
                                             onFocus={ () => this.setState({showSavedMessage: false}) }
                                             type="textarea" rows={3} errorMessage="Enter Keyboard Name"
                                             validate={{ required: { value: true } }} />
@@ -156,26 +157,26 @@ class SendSheduleSms extends Component {
                                                 />
                                         </FormGroup>
 
-                                        <AvField name="reply_voice_for_recipent" label="MESSAGE"
+                                        <TextField name="reply_voice_for_recipent" label="MESSAGE"
                                             rows={4} max={160} type="textarea" 
                                             onFocus={ () => this.setState({showSavedMessage: true}) }
                                             validate={{ required: { value: false } }} />
                                         <span>Max 160 Characters.</span>
 
-                                        <AvField name="form_as_header" label="GENERATE UNSUBSCRIBE MESSAGE"
+                                        <TextField name="form_as_header" label="GENERATE UNSUBSCRIBE MESSAGE"
                                             type="checkbox"
                                             validate={{ required: { value: false } }} />
-                                        <AvField name="form_as_header" label="SCHEDULE"
+                                        <TextField name="form_as_header" label="SCHEDULE"
                                             type="checkbox" checked={true}
                                             validate={{ required: { value: false } }} />
 
-                                        <AvField name="reply_voice_for_recipent" label="SCHEDULE TIME"
+                                        <TextField name="reply_voice_for_recipent" label="SCHEDULE TIME"
                                             type="datetime-local" 
                                             validate={{ required: { value: false } }} />
 
                                         <AvRadioGroup inline value='No' name="sheduleRequired" required>
                                           <Label style={{marginRight: '10px'}}>Schedule Requried: </Label>
-                                          <AvRadio onChange={this.handleChange} customInput label="Yes" value="Yes" />
+                                          <Input type='radio' onChange={this.handleChange} customInput label="Yes" value="Yes" />
                                           <AvRadio onChange={this.handleChange} customInput label="No" value="No" active />
                                         </AvRadioGroup>
 
@@ -203,7 +204,7 @@ class SendSheduleSms extends Component {
                                             </div>
                                         </FormGroup>
 
-                                    </AvForm>
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -234,4 +235,4 @@ class SendSheduleSms extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(SendSheduleSms));
+export default connect(null, { activateAuthLayout })(SendSheduleSms);

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { activateNonAuthLayout } from '../../store/actions';
 import { removeLoggedInUser } from '../../helpers/authUtils'
@@ -35,5 +35,5 @@ const mapStatetoProps = state => {
     return {};
 }
 
-export default withRouter(connect(mapStatetoProps, { activateNonAuthLayout })(Logout));
+export default connect(mapStatetoProps, { activateNonAuthLayout })(Logout);
 

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button, FormGroup, Modal, ModalBody, Label } from 'reactstrap';
 import { activateAuthLayout, openSnack } from '../../store/actions';
-import { Link, withRouter } from 'react-router-dom';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+// import { Link, withRouter } from 'react-router-dom';
+
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import Dropzone from 'react-dropzone';
@@ -342,4 +342,4 @@ class BlockSenderId extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout, openSnack })(BlockSenderId));
+export default connect(null, { activateAuthLayout, openSnack })(BlockSenderId);

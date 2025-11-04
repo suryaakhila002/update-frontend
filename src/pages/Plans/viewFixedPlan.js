@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button, FormGroup, Modal, ModalBody } from 'reactstrap';
 import { activateAuthLayout, openSnack } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {ServerApi} from '../../utils/ServerApi';
 import { Empty } from 'antd';
@@ -228,4 +228,4 @@ class ViewFixedPlan extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout, openSnack })(ViewFixedPlan));
+export default connect(null, { activateAuthLayout, openSnack })(ViewFixedPlan);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, CardBody, Label } from 'reactstrap';
 // import Select from 'react-select';
-import { AvForm } from 'availity-reactstrap-validation';
+import { FormControl } from 'availity-reactstrap-validation';
 import { useDispatch } from 'react-redux';
 import {Input, Button,Table,Modal,Radio} from 'antd';
 import { RetweetOutlined } from '@ant-design/icons';
@@ -136,7 +136,7 @@ export default function SmsApi(props){
                         <Card>
                             <CardBody>
 
-                                <AvForm>
+                                <FormControl>
                                     {/* <Label>SMS GATEWAY </Label>
                                     <Select
                                         label="CLIENT GROUP"
@@ -164,7 +164,7 @@ export default function SmsApi(props){
                             
                                     </FormGroup> */}
 
-                                </AvForm>
+                                </FormControl>
 
                             </CardBody>
                         </Card>

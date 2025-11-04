@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import { Col, Row, Card } from 'reactstrap';
-import { Link, withRouter } from 'react-router-dom';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+import { Link} from 'react-router-dom';
+
 import { Button } from 'antd';
 import { openSnack } from '../../store/actions';
 import { connect } from 'react-redux';
 import ForgotPasswordAnim from '../../components/Loading/ForgotPasswordAnim';
 import Axios from 'axios';
+import { FormControl } from '@mui/material';
 
 class ForgotPassword extends Component {
 
@@ -103,7 +104,7 @@ class ForgotPassword extends Component {
                             <Card className="overflow-hidden account-card mx-3 mt-4">
 
 
-                                    <AvForm className="form-horizontal" onValidSubmit={(this.state.otpSent)?this.resetPassword:this.handleSubmit} >
+                                    <FormControl className="form-horizontal" onValidSubmit={(this.state.otpSent)?this.resetPassword:this.handleSubmit} >
                                         
                                         <div className="account-card-content" style={{padding: '20px 20px 0px 20px'}}>
                                             <AvField disabled={this.state.otpSent} name="username" label="Username" placeholder="Enter Username" type="text" required />
@@ -132,7 +133,7 @@ class ForgotPassword extends Component {
                                             </Row>
                                         </div>
                                         
-                                    </AvForm>
+                                    </FormControl>
                                 
                             </Card>
                         </div>
@@ -162,6 +163,6 @@ class ForgotPassword extends Component {
 //     return { user, loginError, loading };
 // }
 
-export default withRouter(connect(null,{openSnack})(ForgotPassword));
+export default connect(null, { openSnack })(ForgotPassword);
 
 

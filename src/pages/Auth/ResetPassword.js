@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {  Card, Alert } from 'reactstrap';
-import { Link, withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import logosm from '../../images/logo-sm.png';
 
 class ResetPassword extends Component {
@@ -34,5 +34,5 @@ class ResetPassword extends Component {
     }
 }
 
-export default withRouter(ResetPassword);
+export default ResetPassword;
 

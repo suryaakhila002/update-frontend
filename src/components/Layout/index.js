@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 import Topbar from './Topbar';
@@ -67,4 +66,5 @@ const mapStatetoProps = state => {
   };
 }
 
-export default withRouter(connect(mapStatetoProps)(Layout));
+
+export default connect(mapStatetoProps, null)(Layout);

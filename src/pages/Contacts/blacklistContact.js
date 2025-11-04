@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button, FormGroup, ButtonGroup } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+// import { withRouter } from 'react-router-dom';
+
 import { connect } from 'react-redux';
 
 // --- KEY CHANGES (IMPORTS) ---
@@ -87,9 +87,9 @@ class BlacklistContact extends Component {
                             <Card>
                                 <CardBody>
                                     <h5 className="mt-0 header-title">ADD NEW CONTACT</h5>
-                                    <AvForm>
-                                        {/* ... (All AvForm fields remain unchanged) ... */}
-                                    </AvForm>
+                                    <FormControl>
+                                        {/* ... (All FormControl fields remain unchanged) ... */}
+                                    </FormControl>
                                 </CardBody>
                             </Card>
                         </Col>
@@ -129,4 +129,4 @@ class BlacklistContact extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(BlacklistContact));
+export default connect(null, { activateAuthLayout })(BlacklistContact);

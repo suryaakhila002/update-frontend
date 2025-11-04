@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Label, Button, Modal, ModalBody } from 'reactstrap';
 import { activateAuthLayout, openSnack } from '../../store/actions';
 import Select from 'react-select';
-import { withRouter } from 'react-router-dom';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+// import { withRouter } from 'react-router-dom';
+
 import { connect } from 'react-redux';
 
 // --- KEY CHANGES (IMPORTS) ---
@@ -316,4 +316,4 @@ class SupportDepartments extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(SupportDepartments));
+export default connect(null, { activateAuthLayout })(SupportDepartments);

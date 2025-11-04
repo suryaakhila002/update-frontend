@@ -1,15 +1,16 @@
 import React, { Component } from 'react';
 import { Alert, Col, Row, Card } from 'reactstrap';
-import { Link, withRouter } from 'react-router-dom';
+import { Link} from 'react-router-dom';
 import { connect } from 'react-redux';
 import { loginUserSuccessful, updateSmsBalance } from '../../store/actions';
 import { apiError } from '../../store/auth/login/actions';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+
 import { Button } from 'antd';
 import Settings from '../../utils/ServerSettings'
 
 // AUTH related methods
 import { setLoggeedInUser } from '../../helpers/authUtils';
+import { FormControl } from '@mui/material';
 
 class Pageslogin extends Component {
 
@@ -116,7 +117,7 @@ class Pageslogin extends Component {
                                         {this.props.loginError}</Alert>}
 
 
-                                    <AvForm className="form-horizontal" onValidSubmit={this.handleSubmit} >
+                                    <FormControl className="form-horizontal" onValidSubmit={this.handleSubmit} >
                                         
                                         <div className="account-card-content" style={{padding: '20px 20px 0px 20px'}}>
                                             <AvField name="username" label="Username" value={this.state.username} placeholder="Enter Username" type="text" required />
@@ -139,7 +140,7 @@ class Pageslogin extends Component {
                                             </Row>
                                         </div>
                                         
-                                    </AvForm>
+                                    </FormControl>
                                 
                             </Card>
                         </div>
@@ -169,7 +170,7 @@ const mapStatetoProps = state => {
     return { user, loginError, loading };
 }
 
-export default withRouter(connect(mapStatetoProps, { apiError, updateSmsBalance })(Pageslogin));
+export default connect(mapStatetoProps, { loginUserSuccessful, apiError, updateSmsBalance })(Pageslogin);
 
 
 

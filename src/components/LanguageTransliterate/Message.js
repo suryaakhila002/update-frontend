@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { FormGroup, Row, Col } from 'reactstrap';
 import { AvField } from 'availity-reactstrap-validation';
 import "react-datepicker/dist/react-datepicker.css";
-import 'react-dropdown/style.css'
 import '../../utils/Languages.css'
 // import googleTransliterate from 'google-input-tool';
 import axios from 'axios';

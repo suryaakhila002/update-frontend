@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button, FormGroup, Modal, ModalBody, } from 'reactstrap';
 import { activateAuthLayout, openSnack } from '../../store/actions';
-import { withRouter } from 'react-router-dom';
-// import { AvForm, AvField } from 'availity-reactstrap-validation'; // This was commented out, leaving as-is
+// import { withRouter } from 'react-router-dom';
+//  // This was commented out, leaving as-is
 import { connect } from 'react-redux';
 // import { MDBDataTable } from 'mdbreact'; // This was commented out, leaving as-is
 // import SweetAlert from 'react-bootstrap-sweetalert'; // DELETED: Unused and build-blocking
@@ -271,4 +271,4 @@ class SenderIdManage extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout, openSnack })(SenderIdManage));
+export default connect(null, { activateAuthLayout, openSnack })(SenderIdManage);

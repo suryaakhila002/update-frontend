@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Label, Button, Modal, ModalBody } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
 import Select from 'react-select';
-import {  withRouter } from 'react-router-dom';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+// import {  withRouter } from 'react-router-dom';
+
 import { connect } from 'react-redux';
 import {Tag} from 'antd';
 import {ServerApi} from '../../utils/ServerApi';
@@ -205,7 +205,7 @@ class ClientGroups extends Component {
                             <Card>
                                 <CardBody>
                                     {/* ... (Form remains unchanged) ... */}
-                                    <AvForm onValidSubmit={this.addClientGroup}>
+                                    <FormControl onValidSubmit={this.addClientGroup}>
                                         <AvField name="group_name" label="GROUP NAME"
                                             type="text" errorMessage="Enter Group Name"
                                             validate={{ required: { value: true } }} />
@@ -234,7 +234,7 @@ class ClientGroups extends Component {
                                
                                        </FormGroup>
 
-                                    </AvForm>
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -310,4 +310,4 @@ class ClientGroups extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(ClientGroups));
+export default connect(null, { activateAuthLayout })(ClientGroups);

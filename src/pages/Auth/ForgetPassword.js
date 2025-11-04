@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import { Button, Card, Col, Row } from 'reactstrap';
-import { Link, withRouter } from 'react-router-dom';
+import { Link} from 'react-router-dom';
 import { connect } from 'react-redux';
 import logosm from '../../images/logo.png';
 import { forgetUser } from '../../store/actions';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+import { FormControl } from '@mui/material';
+
 
 class ForgetPassword extends Component {
 
@@ -31,7 +32,7 @@ class ForgetPassword extends Component {
                             <Link to="/" className="logo logo-admin"><img src={logosm} height="24" alt="logo" /></Link>
                         </div>
                         <div className="account-card-content">
-                            <AvForm className="form-horizontal m-t-30" onValidSubmit={this.handleSubmit} >
+                            <FormControl className="form-horizontal m-t-30" onValidSubmit={this.handleSubmit} >
                                 <AvField name="username" label="Email" value={this.state.username} placeholder="Enter Email" type="text" required />
 
                                 <Row className="form-group m-t-20 mb-0">
@@ -42,7 +43,7 @@ class ForgetPassword extends Component {
                                     </Col>
                                 </Row>
 
-                            </AvForm>
+                            </FormControl>
                         </div>
                     </Card>
 
@@ -63,7 +64,7 @@ const mapStatetoProps = state => {
     return { user, loginError, loading };
 }
 
-export default withRouter(connect(mapStatetoProps, { forgetUser })(ForgetPassword));
+export default connect(mapStatetoProps, { forgetUser })(ForgetPassword);
 
 
 

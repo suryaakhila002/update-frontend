@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import "react-datepicker/dist/react-datepicker.css";
-import 'react-dropdown/style.css'
 import '../../utils/Languages.css'
 // import googleTransliterate from 'google-input-tool';
 import axios from 'axios';

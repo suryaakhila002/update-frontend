@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button, FormGroup, Modal, ModalBody } from 'reactstrap';
 import { activateAuthLayout, openSnack } from '../../store/actions';
-import { Link, withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {ServerApi} from '../../utils/ServerApi';
 import {Tag} from 'antd';
 import {getLoggedInUser} from '../../helpers/authUtils';
 import Popover from '@mui/material/Popover';
 import Typography from '@mui/material/Typography';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+
 
 // --- KEY CHANGES (IMPORTS) ---
 // import { MDBDataTable } from 'mdbreact'; // REMOVED: Outdated
@@ -313,4 +313,4 @@ class SmsTemplate extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout, openSnack })(SmsTemplate));
+export default connect(null, { activateAuthLayout, openSnack })(SmsTemplate);

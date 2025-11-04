@@ -1,7 +1,6 @@
 
 import React, { Component } from 'react';
 // import { connect } from 'react-redux';
-import { withRouter } from 'react-router-dom';
 // import { updateSmsBalance } from '../../../store/actions';
 
 class LanguageMenu extends Component {
@@ -41,4 +40,4 @@ class LanguageMenu extends Component {
     }
 }
 
-export default withRouter(LanguageMenu);
+export default LanguageMenu;

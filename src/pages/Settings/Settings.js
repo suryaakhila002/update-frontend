@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, Button } from 'reactstrap';
 import { activateAuthLayout, openSnack } from '../../store/actions';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
-import { withRouter } from 'react-router-dom';
+
+// import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 // import Select from 'react-select';
 // import {getLoggedInUser} from '../../helpers/authUtils';
@@ -106,8 +106,8 @@ class AdminCreateClients extends Component { // Note: Class name seems to be a t
                         <Col lg="6">
                             <Card>
                                 <CardBody>
-                                    <AvForm onValidSubmit={this.saveSettings} ref={c => (this.form = c)}>
-                                        {/* ... (All AvForm fields remain unchanged) ... */}
+                                    <FormControl onValidSubmit={this.saveSettings} ref={c => (this.form = c)}>
+                                        {/* ... (All FormControl fields remain unchanged) ... */}
                                         <div className="mb-0 mt-3">
                                             <div className="float-right">
                                                 {/* Used MuiButton here as 'Button' from material was imported */}
@@ -122,7 +122,7 @@ class AdminCreateClients extends Component { // Note: Class name seems to be a t
                                                 </MuiButton>
                                             </div>
                                         </div>
-                                    </AvForm>
+                                    </FormControl>
                                 </CardBody>
                             </Card>
                         </Col>
@@ -143,4 +143,4 @@ class AdminCreateClients extends Component { // Note: Class name seems to be a t
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout, openSnack })(AdminCreateClients));
+export default connect(null, { activateAuthLayout, openSnack })(AdminCreateClients);

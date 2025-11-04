@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import {  Row, Col, Card, CardBody } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { Link, withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {getLoggedInUser} from '../../helpers/authUtils';
 
@@ -209,4 +209,4 @@ class DashboardCards extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(DashboardCards));
+export default connect(null, { activateAuthLayout })(DashboardCards);

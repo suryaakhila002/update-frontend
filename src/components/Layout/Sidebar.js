@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
 
 //Metismenu for menu
 import MetisMenu from 'metismenujs';
@@ -28,7 +27,7 @@ class Sidebar extends Component {
         var items = ul.getElementsByTagName("a");
         for (var i = 0; i < items.length; ++i) {
 
-            if (this.props.location.pathname === items[i].pathname) {
+            if (window.location && window.location.pathname === items[i].pathname) {
                 matchingMenuItem = items[i];
                 break;
             }
@@ -95,4 +94,4 @@ const mapStatetoProps = state => {
     return { is_large_state };
 }
 
-export default withRouter(connect(mapStatetoProps, { isLarge })(Sidebar));
+export default connect(mapStatetoProps, { isLarge })(Sidebar);

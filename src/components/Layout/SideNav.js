@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import {getLoggedInUser} from '../../helpers/authUtils';
-import {withRouter} from 'react-router-dom';
 
 class SideNav extends Component {
 
@@ -344,4 +343,4 @@ class SideNav extends Component {
 }
 
 
-export default withRouter(SideNav);
+export default SideNav;

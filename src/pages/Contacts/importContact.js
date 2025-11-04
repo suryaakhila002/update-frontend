@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Label, Button, ButtonGroup } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
 import Select from 'react-select';
-import { withRouter } from 'react-router-dom';
-import { AvForm, AvField } from 'availity-reactstrap-validation';
+// import { withRouter } from 'react-router-dom';
+
 import { connect } from 'react-redux';
 
 const CLIENT_GROUP_STATUS = [
@@ -72,7 +72,7 @@ class ImportContact extends Component {
                                         Download Sample File
                                     </Button>
 
-                                    <AvForm>
+                                    <FormControl>
                                         <AvField name="import_numbers" label="IMPORT NUMBERS"
                                             type="file"
                                             validate={{ required: { value: false } }} />
@@ -108,7 +108,7 @@ class ImportContact extends Component {
                                
                                        </FormGroup>
 
-                                    </AvForm>
+                                    </FormControl>
 
                                 </CardBody>
                             </Card>
@@ -119,7 +119,7 @@ class ImportContact extends Component {
                                 <CardBody>
                                     <h4 className="mt-0 header-title">IMPORT BY NUMBERS</h4>
 
-                                    <AvForm>
+                                    <FormControl>
                                         <FormGroup>
                                             <Label>COUNTRY CODE </Label>
                                             <Select
@@ -164,7 +164,7 @@ class ImportContact extends Component {
                                
                                        </FormGroup>
 
-                                    </AvForm>
+                                    </FormControl>
                                 </CardBody>
                             </Card>
                         </Col>
@@ -176,4 +176,4 @@ class ImportContact extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout })(ImportContact));
+export default connect(null, { activateAuthLayout })(ImportContact);

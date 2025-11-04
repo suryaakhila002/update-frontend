@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { Container, Row, Col, Card, CardBody, FormGroup, Label, Button, Nav, NavItem, NavLink, TabContent, TabPane, Modal, ModalBody } from 'reactstrap';
 import { activateAuthLayout, updateSmsBalance, openSnack } from '../../store/actions';
 import Select from 'react-select';
-import { Link, withRouter } from 'react-router-dom';
-import { AvForm, AvField, AvGroup } from 'availity-reactstrap-validation';
+import { Link } from 'react-router-dom';
+import { FormControl, AvField, AvGroup } from 'availity-reactstrap-validation';
 import { connect } from 'react-redux';
 // import { MDBDataTable } from 'mdbreact'; // This was already correctly commented out
 import classnames from 'classnames';
@@ -234,9 +234,9 @@ class MyProfile extends Component {
 
                                     <TabContent activeTab={this.state.activeTab_border1}>
                                         <TabPane className="p-3 bg-white" tabId="13">
-                                            <AvForm onValidSubmit={this.updateClient} ref={c => (this.form = c)}>
-                                                {/* ... (All AvForm fields remain unchanged) ... */}
-                                            </AvForm>
+                                            <FormControl onValidSubmit={this.updateClient} ref={c => (this.form = c)}>
+                                                {/* ... (All FormControl fields remain unchanged) ... */}
+                                            </FormControl>
                                         </TabPane>
                                     </TabContent>
                                 </div>
@@ -263,4 +263,4 @@ class MyProfile extends Component {
     }
 }
 
-export default withRouter(connect(null, { activateAuthLayout, updateSmsBalance, openSnack })(MyProfile));
+export default connect(null, { activateAuthLayout, updateSmsBalance, openSnack })(MyProfile);

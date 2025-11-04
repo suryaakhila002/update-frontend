@@ -1,68 +1,145 @@
 import React, { Component } from 'react';
-import { Container, Row, Col, Card, CardBody, FormGroup, Button, Label, Alert } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import { FormControl, TextField, AvRadioGroup, AvRadio } from 'availity-reactstrap-validation';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import Select from 'react-select';
-import { Input, TextField } from '@mui/material';
+import Select from 'react-select'; // RETAINED: For complex select inputs
+import Dropzone from 'react-dropzone';
+import {ServerApi} from '../../utils/ServerApi';
 
-const SMS_GATEWAY = [
-    {
-        label: "SMS Gateway",
-        options: [
-            { label: "Nothing Selected", value: "" }
-        ]
-    }
+// --- MUI Imports ---
+import { 
+    Box, 
+    Grid, 
+    Paper, 
+    Typography, 
+    TextField, 
+    Button as MuiButton, // Renamed to avoid clashes
+    InputLabel, 
+    FormControl,
+    RadioGroup,
+    Radio,
+    FormControlLabel,
+    Alert as MuiAlert,
+    Table as MuiTable,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableCell,
+    Checkbox // ADDED: For remove duplicate/unsubscribe
+} from '@mui/material';
+// --- END MUI Imports ---
+
+import Swal from 'sweetalert2'; 
+import withReactContent from 'sweetalert2-react-content'; 
+
+// Initialize SweetAlert2
+const MySwal = withReactContent(Swal);
+
+// Global form options (expanded based on new component logic)
+const MESSAGE_TYPE_OPTIONS = [
+    { label: "Plain", value: "Plain" },
+    { label: "Unicode", value: "Unicode" },
+    { label: "Arabic", value: "Arabic" },
+    { label: "Voice", value: "Voice" },
+    { label: "MMS", value: "MMS" },
 ];
 
-const REMOVE_DUPLICATE = [
-    {   
-        options: [
-            { label: "Yes", value: "Yes" },
-            { label: "No", value: "No" },
-
-        ]
-    }
+const COUNTRY_CODE_OPTIONS = [
+    { label: "+91 (India)", value: "+91" },
+    { label: "+1 (USA/Canada)", value: "+1" },
+    { label: "+44 (UK)", value: "+44" },
 ];
 
-const MESSAGE_TYPE = [
-    {
-        options: [
-            { label: "Plain", value: "Plain" },
-            { label: "Unicode", value: "Unicode" },
-            { label: "Arabic", value: "Arabic" },
-            { label: "Voice", value: "Voice" },
-            { label: "MMS", value: "MMS" },
 
-        ]
-    }
-];
-
-class SendSheduleSms extends Component {
+class SendBulkSms extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            selectedGroup: null, 
-            selectedMulti: null,
-            cSelected: [],
-            sheduleRequired: 'No',
+            // Form & Input States
+            senderId: null, // Selected senderId object (react-select value)
+            smsGateway: null,
+            mobileColumn: null,
+            messageType: {label: 'Plain', value: 'Plain'}, // Default Message Type
+            countryCode: {label: '+91 (India)', value: '+91'}, // Default Country Code
+            selectTemplate: null,
+            recipients: '', // Enabled for manual recipient input
+            removeDuplicate: true, // Default to true as per best practice
+            generateUnsubscribe: false, // New field state
+            messageText: '', // Message content
+            sheduleRequired: 'No', // Radio Group value
+            
+            // UI/Control States
+            remaningMessageCharacters: 160,
+            totalMobileNumbers: 0,
             showSavedMessage: false,
+            alert1: true,
+            alert2: true,
+            isSending: false,
+            renderForm: false,
+            selectedFile: [],
             default_date: new Date(), default: false, start_date: new Date(), monthDate: new Date(), yearDate: new Date(), end_date: new Date(), date: new Date(),
+            
+            // Data States
+            senderIds: [
+                {
+                    label: "Select Sender Id",
+                    options: [{ label: "Nothing Selected", value: "" }]
+                }
+            ],
+            smsGateways: [
+                {
+                    label: "SMS Gateways",
+                    options: [{ label: "None", value: "None" }]
+                }
+            ],
+            mobileColumns: [
+                {
+                    label: "Mobile Column",
+                    options: [
+                        { label: "A", value: "A" },
+                        { label: "B", value: "B" },
+                        { label: "C", value: "C" },
+                    ]
+                }
+            ],
         };
         this.onCheckboxBtnClick = this.onCheckboxBtnClick.bind(this);
         this.handleDefault = this.handleDefault.bind(this);
+        this.sendSms = this.sendSms.bind(this);
+        this.loadSenderIds = this.loadSenderIds.bind(this);
+        this.loadRoutes = this.loadRoutes.bind(this);
+        this.handleSelectGroupSmsGAteway = this.handleSelectGroupSmsGAteway.bind(this);
+        this.handleSelectMobileColumn = this.handleSelectMobileColumn.bind(this);
+        this.handleSmsSubmit = this.handleSmsSubmit.bind(this); // New submit handler
+        this.handleSelectCountryCode = this.handleSelectCountryCode.bind(this); // New handler
     }
 
     componentDidMount() {
         this.props.activateAuthLayout();
+        this.loadSenderIds();
+        this.loadRoutes();
     }
 
-    //Select 
-    handleSelectGroup = (selectedGroup) => {
-        this.setState({ selectedGroup });
+    //Select Handlers
+    handleSelectGroup = (senderId) => {
+        this.setState({ senderId });
+    }
+    handleSelectGroupSmsGAteway  = (selectedItem) => {
+        this.setState({ smsGateway: selectedItem.value });
+    }
+    handleSelectMobileColumn  = (selectedItem) => {
+        this.setState({ mobileColumn: selectedItem.value });
+    }
+    handleSelectMessageType = (selectedItem) => {
+        this.setState({ messageType: selectedItem });
+    }
+    handleSelectTemplate = (selectedItem) => {
+        this.setState({ selectTemplate: selectedItem.value });
+    }
+    handleSelectCountryCode = (selectedItem) => {
+        this.setState({ countryCode: selectedItem });
     }
 
     handleDefault(date) {
@@ -70,12 +147,30 @@ class SendSheduleSms extends Component {
     }
 
     handleChange = e => {
-        const { name, value } = e.target;
-
+        const { name, value, checked, type } = e.target;
         this.setState({
-          [name]: value
+          [name]: type === 'checkbox' ? checked : value
         });
     };
+
+    handleAcceptedFiles = (files) => {
+        files.map(file => Object.assign(file, {
+            preview: URL.createObjectURL(file),
+            formattedSize: this.formatBytes(file.size)
+        }));
+
+        this.setState({ renderForm: true, selectedFile: files });
+    }
+        
+    formatBytes = (bytes, decimals = 2) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
 
     onCheckboxBtnClick(selected) {
         const index = this.state.cSelected.indexOf(selected);
@@ -87,152 +182,427 @@ class SendSheduleSms extends Component {
         this.setState({ cSelected: [...this.state.cSelected] });
     }
 
+    // Form submission handler
+    handleSmsSubmit(event) {
+        event.preventDefault();
+        
+        // Simple client-side validation check
+        if (!this.state.smsGateway || !this.state.senderId || !this.state.mobileColumn || !this.state.messageText || !this.state.countryCode) {
+            MySwal.fire({
+                title: 'Validation Error',
+                text: 'Please fill in all required fields (Gateway, Sender ID, Mobile Column, Message, Country Code).',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        // Pass an object to sendSms containing necessary values from state
+        this.sendSms(event, {
+            recipients: this.state.recipients,
+            message: this.state.messageText
+        });
+    }
+
+    loadSenderIds(){
+        ServerApi().get('getActiveSenderIds')
+          .then(res => {
+            if (res.data === undefined) { return false; } 
+
+            var arr = res.data.map(obj => ({
+                label: obj.senderId,
+                value: obj.senderId, // Assuming value is senderId string
+            }))
+
+            this.setState({senderIds: arr})
+          })
+          .catch(error => console.log('error', error));
+    }
+
+    loadRoutes(){
+        ServerApi().get('routes/fetch-active-routes')
+          .then(res => {
+            if (res.data === undefined) { return false; } 
+
+            var arr = res.data.response.map(obj => ({
+                label: obj.systemId,
+                value: obj.routeName,
+            }))
+
+            this.setState({smsGateways: arr})
+          })
+          .catch(error => console.log('error', error));
+    }
+
+    sendSms(event, values){
+        this.setState({isSending: true});
+
+        var raw = JSON.stringify({
+            requestType: "BULKSMS", // Changed to BULKSMS as implied by context
+            payload:{
+                smsGateway: this.state.smsGateway,
+                senderId:this.state.senderId.value,
+                mobileColumn: this.state.mobileColumn, // Use mobile column from state
+                messageType : this.state.messageType.value || 'Plain',
+                countryCode:this.state.countryCode.value,
+                globalStatus:"true",
+                recipients : values.recipients, // Recipients from the file process or text area
+                delimiter : ",",
+                removeDuplicate : this.state.removeDuplicate ? "true" : "false", // Use state
+                message : values.message, // Message from text area
+                scheduleRequired: this.state.sheduleRequired === 'Yes' ? 'true' : 'false',
+                scheduleTime: this.state.sheduleRequired === 'Yes' ? this.state.default_date.toISOString() : undefined,
+                generateUnsubscribe: this.state.generateUnsubscribe ? 'true' : 'false',
+            }
+        });
+
+        ServerApi().post('sms/sendBulkSms', raw) // Changed to bulk SMS endpoint
+          .then(res => {
+            this.setState({ isSending: false, messageText: '', recipients: '' });
+            MySwal.fire({
+                title: 'Success!',
+                text: res.data.response || 'Bulk SMS campaign initiated successfully.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+          })
+          .catch(error => {
+              console.error('SMS send error:', error);
+              this.setState({ isSending: false });
+              MySwal.fire({
+                title: 'Error!',
+                text: 'Something went wrong while sending the SMS. Check the console for details.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+              });
+          });
+    }
+
+    renderForm(){
+        return(
+            <Grid container spacing={2} sx={{ mt: 2 }}>
+            <Grid item xs={12}>
+                <MuiTable size="small" sx={{ minWidth: 650 }} aria-label="simple table">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>A</TableCell>
+                            <TableCell>B</TableCell>
+                            <TableCell>C</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        <TableRow><TableCell>Mark</TableCell><TableCell>426246</TableCell><TableCell>Otto</TableCell></TableRow>
+                        <TableRow><TableCell>Jacob</TableCell><TableCell>24362346</TableCell><TableCell>Thornton</TableCell></TableRow>
+                        <TableRow><TableCell>Larry</TableCell><TableCell>23463246</TableCell><TableCell>the Bird</TableCell></TableRow>
+                    </TableBody>
+                </MuiTable>
+            </Grid>
+
+            <Grid item xs={12}>
+            <Box component="form" onSubmit={this.handleSmsSubmit} sx={{ mt: 2 }}>
+                
+                {/* SMS Gateway Select */}
+                <FormControl fullWidth margin="normal">
+                    <InputLabel shrink>SMS Gateway</InputLabel>
+                    <Select
+                        classNamePrefix="react-select"
+                        name="smsGateway"
+                        onChange={this.handleSelectGroupSmsGAteway}
+                        options={this.state.smsGateways}
+                        placeholder="Select SMS Gateway"
+                        required
+                    />
+                </FormControl>
+
+                {/* SENDER ID Select */}
+                <FormControl fullWidth margin="normal">
+                    <InputLabel shrink>SENDER ID</InputLabel>
+                    <Select
+                        classNamePrefix="react-select"
+                        name="senderId"
+                        value={this.state.senderId}
+                        onChange={this.handleSelectGroup}
+                        options={this.state.senderIds}
+                        placeholder="Select Sender ID"
+                        required
+                    />
+                </FormControl>
+
+                {/* COUNTRY CODE Select (New Field) */}
+                <FormControl fullWidth margin="normal">
+                    <InputLabel shrink>COUNTRY CODE</InputLabel>
+                    <Select
+                        classNamePrefix="react-select"
+                        name="countryCode"
+                        value={this.state.countryCode}
+                        onChange={this.handleSelectCountryCode}
+                        options={COUNTRY_CODE_OPTIONS} 
+                        placeholder="Select Country Code"
+                        required
+                    />
+                </FormControl>
+
+                {/* Mobile Column Select */}
+                <FormControl fullWidth margin="normal">
+                    <InputLabel shrink>Mobile Column</InputLabel>
+                    <Select
+                        classNamePrefix="react-select"
+                        name="mobileColumn"
+                        onChange={this.handleSelectMobileColumn}
+                        options={this.state.mobileColumns}
+                        placeholder="Select Mobile Column"
+                        required
+                    />
+                </FormControl>
+
+                {/* RECIPIENTS Textarea (Re-enabled/Integrated from new request logic) */}
+                <TextField 
+                    name="recipients" 
+                    label="RECIPIENTS (Separated by comma)"
+                    multiline rows={3} 
+                    fullWidth 
+                    margin="normal"
+                    value={this.state.recipients}
+                    onChange={(e) => this.setState({recipients: e.target.value, totalMobileNumbers: e.target.value.split(",").filter(n => n.trim()).length})}
+                    onFocus={ () => this.setState({showSavedMessage: false}) }
+                    helperText="Numbers must be separated by comma"
+                />
+                <Grid container alignItems="center" sx={{ mb: 2 }}>
+                    <Grid item xs={6}>
+                        <Typography variant="caption" sx={{ ml: 1 }}>No of mobile numbers: {this.state.totalMobileNumbers}</Typography>
+                    </Grid>
+                    <Grid item xs={6} sx={{ textAlign: 'right' }}>
+                         <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={this.state.removeDuplicate}
+                                    onChange={this.handleChange}
+                                    name="removeDuplicate"
+                                    color="primary"
+                                />
+                            }
+                            label={<Typography variant="caption">REMOVE DUPLICATE</Typography>}
+                        />
+                    </Grid>
+                </Grid>
+                
+                {/* Message Type Select (Updated Options) */}
+                <FormControl fullWidth margin="normal">
+                    <InputLabel shrink>Message Type</InputLabel>
+                    <Select
+                        classNamePrefix="react-select"
+                        name="messageType"
+                        value={this.state.messageType}
+                        onChange={this.handleSelectMessageType}
+                        options={MESSAGE_TYPE_OPTIONS}
+                        placeholder="Select Message Type"
+                        required
+                    />
+                </FormControl>
+
+                {/* Template Select (Mocked options for now) */}
+                <FormControl fullWidth margin="normal">
+                    <InputLabel shrink>Select Template</InputLabel>
+                    <Select
+                        classNamePrefix="react-select"
+                        name="selectTemplate"
+                        onChange={this.handleSelectTemplate}
+                        options={[{label: 'Welcome', value: 'Welcome'}, {label: 'Promo', value: 'Promo'}]}
+                        placeholder="Select Template (Optional)"
+                    />
+                </FormControl>
+                
+                {/* Message Textarea */}
+                <FormControl fullWidth margin="normal">
+                    <TextField 
+                        name="messageText" 
+                        label="MESSAGE"
+                        multiline rows={4} 
+                        fullWidth 
+                        value={this.state.messageText}
+                        onChange={ (e) => this.setState({messageText: e.target.value, remaningMessageCharacters: 160 - e.target.value.length}) } 
+                        onFocus={ () => this.setState({showSavedMessage: true}) } 
+                        required
+                    />
+
+                    <Grid container alignItems="center" sx={{ mt: 1 }}>
+                        <Grid item xs={8}>
+                            <Typography variant="caption" sx={{ ml: 1 }}>
+                                {this.state.remaningMessageCharacters} CHARACTERS REMAINING 
+                                <Typography component="span" color="success.main" sx={{ ml: 1, fontWeight: 'bold' }}>
+                                    1 Message (s)
+                                </Typography>
+                            </Typography>
+                        </Grid>
+                        {/* New Unsubscribe Checkbox from request logic */}
+                        <Grid item xs={4} sx={{ textAlign: 'right' }}>
+                             <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={this.state.generateUnsubscribe}
+                                        onChange={this.handleChange}
+                                        name="generateUnsubscribe"
+                                        color="primary"
+                                        size="small"
+                                    />
+                                }
+                                label={<Typography variant="caption">Unsubscribe Link</Typography>}
+                            />
+                        </Grid>
+                    </Grid>
+                </FormControl>
+                
+                {/* Schedule Required Radio Group (Original logic retained) */}
+                <FormControl component="fieldset" sx={{ mt: 2, mb: 2 }}>
+                    <RadioGroup 
+                        row 
+                        name="sheduleRequired" 
+                        value={this.state.sheduleRequired} 
+                        onChange={this.handleChange}
+                    >
+                        <InputLabel sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>Schedule Required: </InputLabel>
+                        <FormControlLabel value="Yes" control={<Radio size="small" />} label="Yes" />
+                        <FormControlLabel value="No" control={<Radio size="small" />} label="No" />
+                    </RadioGroup>
+                </FormControl>
+
+                {/* Date Picker (Conditional) */}
+                {this.state.sheduleRequired === 'Yes' && 
+                    <FormControl fullWidth margin="normal">
+                        <DatePicker
+                            className="MuiInputBase-input MuiOutlinedInput-input" // Attempt to match MUI styling
+                            selected={this.state.default_date}
+                            onChange={this.handleDefault}
+                            showTimeSelect
+                            dateFormat="Pp"
+                        />
+                    </FormControl>
+                }
+
+                {/* Action Buttons */}
+                <Box sx={{ mt: 3, mb: 0, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                    <MuiButton size="small" type="button" variant="outlined" color="secondary">
+                        <i className="fa fa-save mr-2"></i> Save Draft
+                    </MuiButton>
+                    <MuiButton size="small" type="submit" variant="contained" color="primary" disabled={this.state.isSending}>
+                        <i className="fa fa-paper-plane mr-2"></i> {(this.state.isSending)?'Please Wait...':'Send'}
+                    </MuiButton>
+                </Box>
+            </Box>
+            </Grid>
+            </Grid>
+        )
+    }
+
     render() {
-        const { selectedGroup } = this.state;
+        // Renaming local variables for clarity
+        const selectedFile = this.state.selectedFile;
 
         return (
-            <React.Fragment>
-                <Container fluid>
-                    <div className="page-title-box">
-                        <Row className="align-items-center">
+            <Box sx={{ p: 3 }}> {/* MUI Box replaces Container fluid */}
+                
+                {/* Page Title */}
+                <Box sx={{ mb: 4 }}>
+                    <Grid container alignItems="center">
+                        <Grid item xs={12}>
+                            <Typography variant="h4" component="h1">SEND CUSTOM SMS</Typography>
+                        </Grid>
+                    </Grid>
+                </Box>
 
-                            <Col sm="6">
-                                <h4 className="page-title">SEND BULK SMS</h4>
-                            </Col>
-                        </Row>
-                    </div>
+                <Grid container spacing={3}>
+                    {/* LEFT COLUMN: File Upload and Form (lg="6") */}
+                    <Grid item lg={6} xs={12}>
+                        <Paper elevation={3} sx={{ p: 3, height: '100%' }}> {/* MUI Paper replaces Card/CardBody */}
 
-                    <Row>
-                        <Col lg="6">
-                            <Card>
-                                <CardBody>
+                            <Grid container spacing={2}>
+                                {/* Dropzone */}
+                                <Grid item xs={12}>
+                                    <Dropzone onDrop={acceptedFiles => this.handleAcceptedFiles(acceptedFiles)}>
+                                        {({ getRootProps, getInputProps }) => (
+                                            <Box className="dropzone" sx={{ border: '2px dashed #ccc', borderRadius: 1, p: 4, textAlign: 'center', cursor: 'pointer' }}>
+                                                <Box className="dz-message needsclick" {...getRootProps()}>
+                                                    <input {...getInputProps()} />
+                                                    <Typography variant="subtitle1">Upload File *</Typography>
+                                                </Box>
+                                            </Box>
+                                        )}
+                                    </Dropzone>
+                                    
+                                    {/* File Previews */}
+                                    <Box className="dropzone-previews" sx={{ mt: 2 }}>
+                                        {selectedFile.map((f, i) => (
+                                            <Paper key={i} elevation={1} sx={{ mt: 1, p: 1 }}>
+                                                <Grid container alignItems="center" spacing={1}>
+                                                    <Grid item>
+                                                        {/* Using a placeholder for image/file preview */}
+                                                        <Box sx={{ width: 40, height: 40, bgcolor: 'grey.300', borderRadius: 1 }} /> 
+                                                    </Grid>
+                                                    <Grid item xs>
+                                                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{f.name}</Typography>
+                                                        <Typography variant="caption" color="text.secondary">{f.formattedSize}</Typography>
+                                                    </Grid>
+                                                </Grid>
+                                            </Paper>
+                                        ))}
+                                    </Box>
+                                </Grid>
+                            </Grid>
+                            
+                            {/* Render Form if file is selected */}
+                            {this.state.renderForm && this.renderForm()}
 
-                                    <h4 className="mt-0 header-title mb-2">SEND BULK SMS</h4>
+                        </Paper>
+                    </Grid>
 
-                                    <FormControl>
-                                            <Label>SMS GATEWAY</Label>
-                                                <Select
-                                                    className="mb-3"
-                                                    label="SMS GATEWAY"
-                                                    value={selectedGroup}
-                                                    onChange={this.handleSelectGroup}
-                                                    options={SMS_GATEWAY}
-                                                />
-
-                                        <TextField name="title" label="SENDER ID"
-                                            type="text" errorMessage="Enter The Title"
-                                            validate={{ required: { value: true } }} />
-                                            
-
-                                            <Label>COUNTRY CODE</Label>
-                                                <Select
-                                                    className="mb-3"
-                                                    label="COUNTRY CODE"
-                                                    value={selectedGroup}
-                                                    onChange={this.handleSelectGroup}
-                                                    options={SMS_GATEWAY}
-                                                />
-
-                                        <TextField name="keyboard_name" label="RECIPIENTS"
-                                            onFocus={ () => this.setState({showSavedMessage: false}) }
-                                            type="textarea" rows={3} errorMessage="Enter Keyboard Name"
-                                            validate={{ required: { value: true } }} />
-
-                                            <Label>REMOVE DUPLICATE</Label>
-                                                <Select
-                                                    className="mb-3"
-                                                    label="REMOVE DUPLICATE"
-                                                    value={selectedGroup}
-                                                    onChange={this.handleSelectGroup}
-                                                    options={REMOVE_DUPLICATE}
-                                                />
-
-                                        <FormGroup>
-                                            <Label>MESSAGE TYPE</Label>
-                                                <Select
-                                                    label="MESSAGE TYPE"
-                                                    value={selectedGroup}
-                                                    onChange={this.handleSelectGroup}
-                                                    options={MESSAGE_TYPE}
-                                                />
-                                        </FormGroup>
-
-                                        <TextField name="reply_voice_for_recipent" label="MESSAGE"
-                                            rows={4} max={160} type="textarea" 
-                                            onFocus={ () => this.setState({showSavedMessage: true}) }
-                                            validate={{ required: { value: false } }} />
-                                        <span>Max 160 Characters.</span>
-
-                                        <TextField name="form_as_header" label="GENERATE UNSUBSCRIBE MESSAGE"
-                                            type="checkbox"
-                                            validate={{ required: { value: false } }} />
-                                        <TextField name="form_as_header" label="SCHEDULE"
-                                            type="checkbox" checked={true}
-                                            validate={{ required: { value: false } }} />
-
-                                        <TextField name="reply_voice_for_recipent" label="SCHEDULE TIME"
-                                            type="datetime-local" 
-                                            validate={{ required: { value: false } }} />
-
-                                        <AvRadioGroup inline value='No' name="sheduleRequired" required>
-                                          <Label style={{marginRight: '10px'}}>Schedule Requried: </Label>
-                                          <Input type='radio' onChange={this.handleChange} customInput label="Yes" value="Yes" />
-                                          <AvRadio onChange={this.handleChange} customInput label="No" value="No" active />
-                                        </AvRadioGroup>
-
-                                        {this.state.sheduleRequired === 'Yes' && 
-                                            <FormGroup >
-                                            <DatePicker
-                                                className="form-control"
-                                                selected={this.state.default_date}
-                                                onChange={this.handleDefault}
-                                                showTimeSelect
-                                                dateFormat="Pp"
-                                            />
-                                            </FormGroup >
-                                        }
-
-
-                                        <FormGroup className="mb-0">
-                                            <div>
-                                                <Button style={{float: 'right'}} type="submit" color="primary" className="mr-1">
-                                                    <i className="fa fa-paper-plane mr-2"></i> Send
-                                                </Button>
-                                                <Button style={{float: 'right'}} type="button" color="secondary" className="mr-1">
-                                                    <i className="fa fa-save mr-2"></i> Save Draft
-                                                </Button>
-                                            </div>
-                                        </FormGroup>
-
-                                    </FormControl>
-
-                                </CardBody>
-                            </Card>
-                        </Col>
-
-                        {this.state.showSavedMessage &&
-                        <Col lg="6" >
-                            <h4 className="mt-0 header-title">Saved Messages</h4>
-                                <div className="">
-                                    <Alert color="success" className="mb-0">
-                                        <p className="mb-0">Whenever to Bulk SMS. 
-                                        </p>
-                                        <p> 
-                                            <Link to="#"><i className="ti ti-close float-right danger mr-2"></i> </Link>
-                                            <Link to="#"><i className="ti ti-check float-right success mr-2"></i></Link> 
-                                        </p>
-
-                                    </Alert>
-                                </div>
-                        </Col>
-                        }
-
-                    </Row>
-
-                </Container>
-            </React.Fragment>
+                    {/* RIGHT COLUMN: Saved Messages (Conditional lg="6") */}
+                    {this.state.showSavedMessage &&
+                        <Grid item lg={6} xs={12}>
+                            <Typography variant="h6" sx={{ mb: 2 }}>Saved Messages</Typography>
+                            
+                            {/* Saved Message Alert 1 (MUI Alert replaces reactstrap Alert) */}
+                            <MuiAlert 
+                                severity="success" 
+                                onClose={() => this.setState({ alert1: false })} 
+                                sx={{ mb: 2, display: this.state.alert1 ? 'flex' : 'none' }}
+                            >
+                                <Box sx={{ width: '100%' }}>
+                                    <Typography variant="body2">Whenever to Bulk SMS.</Typography>
+                                    <Box sx={{ mt: 1, textAlign: 'right' }}>
+                                        <Link href="#" onClick={(e) => { e.preventDefault(); this.setState({ messageText: 'Whenever to Bulk SMS' }); }} style={{ color: 'inherit', marginRight: 8 }}>
+                                            <i className="ti ti-check success mr-2" style={{ color: 'green' }}></i>
+                                        </Link> 
+                                        <Link href="#" onClick={(e) => { e.preventDefault(); this.setState({ alert1: false }); }} style={{ color: 'inherit' }}>
+                                            <i className="ti ti-close danger" style={{ color: 'red' }}></i>
+                                        </Link>
+                                    </Box>
+                                </Box>
+                            </MuiAlert>
+                            
+                            {/* Saved Message Alert 2 (MUI Alert replaces reactstrap Alert) */}
+                            <MuiAlert 
+                                severity="success" 
+                                onClose={() => this.setState({ alert2: false })} 
+                                sx={{ display: this.state.alert2 ? 'flex' : 'none' }}
+                            >
+                                <Box sx={{ width: '100%' }}>
+                                    <Typography variant="body2">Another sample message draft.</Typography>
+                                    <Box sx={{ mt: 1, textAlign: 'right' }}>
+                                        <Link href="#" onClick={(e) => { e.preventDefault(); this.setState({ messageText: 'Another sample message draft.' }); }} style={{ color: 'inherit', marginRight: 8 }}>
+                                            <i className="ti ti-check success mr-2" style={{ color: 'green' }}></i>
+                                        </Link> 
+                                        <Link href="#" onClick={(e) => { e.preventDefault(); this.setState({ alert2: false }); }} style={{ color: 'inherit' }}>
+                                            <i className="ti ti-close danger" style={{ color: 'red' }}></i>
+                                        </Link>
+                                    </Box>
+                                </Box>
+                            </MuiAlert>
+                        </Grid>
+                    }
+                </Grid>
+            </Box>
         );
     }
 }
 
-export default connect(null, { activateAuthLayout })(SendSheduleSms);
+export default connect(null, { activateAuthLayout })(SendBulkSms);

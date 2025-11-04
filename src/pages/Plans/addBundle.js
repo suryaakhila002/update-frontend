@@ -1,83 +1,123 @@
 import React, { Component } from 'react';
-import { Container, Row, Col, Card, CardBody, Button } from 'reactstrap';
+// REMOVED: reactstrap imports
 import { activateAuthLayout } from '../../store/actions';
 // import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-// import Select from 'react-select';
-import {ServerApi} from '../../utils/ServerApi';
+import { ServerApi } from '../../utils/ServerApi';
+import { getLoggedInUser } from '../../helpers/authUtils';
 
-import {getLoggedInUser} from '../../helpers/authUtils';
-
-// --- KEY CHANGES (IMPORTS) ---
-// import SweetAlert from 'react-bootstrap-sweetalert'; // REMOVED: Outdated
-import Swal from 'sweetalert2'; // ADDED: Modern Alert Library
-import withReactContent from 'sweetalert2-react-content'; // ADDED: React wrapper
-// --- END KEY CHANGES ---
+// --- MUI & Core Imports ---
+import { 
+    Box, 
+    Grid, 
+    Paper, 
+    Typography, 
+    TextField, 
+    Button as MuiButton,
+    InputLabel,
+    FormControl,
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import SaveIcon from '@mui/icons-material/Save';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+// --- END MUI Imports ---
 
 // Initialize SweetAlert2
 const MySwal = withReactContent(Swal);
 
-// ... (Constants like GST_TYPE remain unchanged/commented)
+// Mock Constants (Defined here as they were used in the original component context)
+const GST_TYPE = [
+    { label: 'Exclusive', value: 'Exclusive' },
+    { label: 'Inclusive', value: 'Inclusive' },
+];
 
 class AddBundle extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            rows: [],
-            gst_type: {label:'Exclusive', value: 'Exclusive'},
+            rows: [
+                { id: 0, unitFrom: '', unitTo: '', price: '' } // Initial default row
+            ],
+            planName: '',
+            gst_type: GST_TYPE[0],
             
-            // --- KEY CHANGE (STATE) ---
-            // These are no longer needed, as SweetAlert2 is called imperatively
-            // success_msg: false,
-            // modal_type: 'success',
-            // success_message: '',
-            // modal_standard: false,
-            // --- END KEY CHANGE ---
-            
+            isAdding: false,
             modal_delete: false,
             delete_sid: '',
             isDeleting: false,
-            isLoading: true,
+            isLoading: false, // Set to false since no initial data load shown
         };
         this.addBundle = this.addBundle.bind(this);
+        this.handleRowChange = this.handleRowChange.bind(this);
+        this.handlePlanNameChange = this.handlePlanNameChange.bind(this);
+    }
+
+    handlePlanNameChange = (e) => {
+        this.setState({ planName: e.target.value });
+    }
+
+    handleRowChange = (e, id, field) => {
+        const { value } = e.target;
+        this.setState(prevState => ({
+            rows: prevState.rows.map(row => 
+                row.id === id ? { ...row, [field]: value } : row
+            )
+        }));
     }
 
     handleAddRow = () => {
-        const item = {
-            name: ""
+        const newId = this.state.rows.length > 0 ? Math.max(...this.state.rows.map(r => r.id)) + 1 : 0;
+        const newItem = {
+            id: newId,
+            unitFrom: '',
+            unitTo: '',
+            price: ''
         };
         this.setState({
-            rows: [...this.state.rows, item]
+            rows: [...this.state.rows, newItem]
         });
     };
 
-    handleRemoveRow = () => {
-        this.setState({
-            rows: this.state.rows.slice(0, -1)
-        });
+    handleRemoveRow = (id) => {
+        this.setState(prevState => ({
+            rows: prevState.rows.filter(row => row.id !== id)
+        }));
     };
 
     componentDidMount() {
         this.props.activateAuthLayout();
     }
 
-    addBundle(event, values){
-        var bundles = [];
+    // New MUI form submission handler
+    handleSubmit = (e) => {
+        e.preventDefault();
 
-        // --- FIX: Loop should go up to and including the length ---
-        // Original: this.state.rows.length
-        // Corrected: this.state.rows.length + 1 (to include the 0th index item)
-        // But since you start at 0, it should be <= length
-        for (let index = 0; index <= this.state.rows.length; index++) {
-            bundles.push(
-                {
-                    endingUnit: values["unitTo-"+index],
-                    startingUnit: values["unitFrom-"+index],
-                    price: values["price-"+index] // Added price
-                }
-            );
+        // Basic client-side validation
+        if (!this.state.planName.trim()) {
+            MySwal.fire({ title: 'Error!', text: 'Please enter a Plan Name.', icon: 'error' });
+            return;
         }
-        // --- END FIX ---
+
+        const bundles = this.state.rows.map(row => ({
+            endingUnit: row.unitTo,
+            startingUnit: row.unitFrom,
+            price: row.price
+        }));
+
+        if (bundles.some(b => !b.endingUnit || !b.startingUnit || !b.price)) {
+            MySwal.fire({ title: 'Error!', text: 'All bundle fields must be filled.', icon: 'error' });
+            return;
+        }
+
+        // Call the original addBundle logic
+        this.addBundle(e, { planName: this.state.planName }, bundles);
+    }
+
+    // Updated original logic using controlled inputs and new payload structure
+    addBundle(event, values, bundles){
+        this.setState({isAdding: true});
 
         var raw = {
             bundles: bundles,
@@ -87,35 +127,31 @@ class AddBundle extends Component {
 
         ServerApi({URL: 'CLIENT_MICRO_SERVER'}).post("api/v1/pricing/bundle/create", raw)
         .then(res => {
-          
-          if (res.data === undefined || res.data.id === '') { // Modified check
-              // --- KEY CHANGE (SWEETALERT REPLACEMENT) ---
-              // this.setState({success_msg: true, modalType:'error', success_message : res.data.message, isAdding: false}); // REMOVED
-              this.setState({ isAdding: false });
-              MySwal.fire({
-                  title: 'Error!',
-                  text: res.data.message,
-                  icon: 'error'
-              });
-              // --- END KEY CHANGE ---
-              return false;
-          }
-          
-          // --- KEY CHANGE (SWEETALERT REPLACEMENT) ---
-          // this.setState({success_msg: true, modalType:'success', success_message : "Plan Created!", isAdding: false}); // REMOVED
-          this.setState({ isAdding: false });
-          MySwal.fire({
-              title: 'Plan Created!',
-              icon: 'success'
-          }).then((result) => {
-              // This logic was in the old <SweetAlert> onConfirm prop
-              if (result.isConfirmed) {
-                  this.props.history.push('/viewBundlePlan');
-              }
-          });
-          // --- END KEY CHANGE ---
+            
+            if (res.data === undefined || res.data.id === '') {
+                this.setState({ isAdding: false });
+                let message = res.data?.message || 'An unknown error occurred.';
+                MySwal.fire({
+                    title: 'Error!',
+                    text: message,
+                    icon: 'error'
+                });
+                return false;
+            }
+            
+            this.setState({ isAdding: false });
+            MySwal.fire({
+                title: 'Plan Created!',
+                icon: 'success'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirect after success
+                    this.props.history.push('/viewBundlePlan');
+                }
+            });
 
-          this.form && this.form.reset();
+            // Clear the form after submission (assuming success)
+            this.setState({ planName: '', rows: [{ id: 0, unitFrom: '', unitTo: '', price: '' }] });
 
         })
         .catch(error => {
@@ -126,121 +162,130 @@ class AddBundle extends Component {
     }
 
     render() {
+        const { rows, planName, isAdding } = this.state;
+
+        // Helper component for rendering a single bundle row using MUI Grid
+        const BundleRow = ({ row, idx, handleRemove }) => (
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }} key={row.id}>
+                <Grid item xs={12} sm={3}>
+                    <TextField
+                        name={`unitFrom-${row.id}`}
+                        label="UNIT FROM"
+                        type="number"
+                        fullWidth
+                        required
+                        value={row.unitFrom}
+                        onChange={(e) => this.handleRowChange(e, row.id, 'unitFrom')}
+                        size="small"
+                    />
+                </Grid>
+                <Grid item xs={12} sm={3}>
+                    <TextField
+                        name={`unitTo-${row.id}`}
+                        label="UNIT TO"
+                        type="number"
+                        fullWidth
+                        required
+                        value={row.unitTo}
+                        onChange={(e) => this.handleRowChange(e, row.id, 'unitTo')}
+                        size="small"
+                    />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                    <TextField
+                        name={`price-${row.id}`}
+                        label="PRICE"
+                        type="number"
+                        fullWidth
+                        required
+                        value={row.price}
+                        onChange={(e) => this.handleRowChange(e, row.id, 'price')}
+                        size="small"
+                    />
+                </Grid>
+                <Grid item xs={12} sm={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <MuiButton 
+                        onClick={() => handleRemove(row.id)} 
+                        variant="outlined" 
+                        color="error"
+                        size="small"
+                        disabled={rows.length === 1} // Disable removal if only one row remains
+                        sx={{ mt: 1 }}
+                    >
+                        <DeleteIcon fontSize="small" />
+                    </MuiButton>
+                </Grid>
+            </Grid>
+        );
+
         return (
-            <React.Fragment>
-                <Container fluid>
-                    {/* ... (All JSX in render() remains unchanged, EXCEPT for the SweetAlert block) ... */}
+            <Box sx={{ p: 3 }}>
+                <Box className="page-title-box" sx={{ mb: 3 }}>
+                    <Typography variant="h4">Add Bundle Plan</Typography>
+                </Box>
 
-                    <div className="page-title-box">
-                        <Row className="align-items-center">
-                            <Col sm="6">
-                                <h4 className="page-title">Add Bundle Plan</h4>
-                            </Col>
-                        </Row>
-                    </div>
+                <Grid container spacing={3} justifyContent="center">
+                    <Grid item xs={12} md={8}>
+                        <Paper elevation={1} sx={{ p: 3 }}>
+                            <Typography variant="h6" sx={{ mb: 3 }}>Add Bundle Plan</Typography>
 
-                    <Row>
-                        <Col md="8">
-                            <Card>
-                                <CardBody>
-                                    <FormControl onValidSubmit={this.addBundle} ref={c => (this.form = c)}>
-                                        {/* ... (All FormControl fields remain unchanged) ... */}
-                                        <Row> 
-                                            <Col lg="10" sm="12" className="mb-3">
-                                                <AvField name="planName" label="PLAN NAME"
-                                                    type="text" errorMessage="Enter PLAN NAME"
-                                                    validate={{ required: { value: true } }} />
-                                            </Col>
-                                        </Row>
-                                        <table style={{ width: "100%" }}>
-                                            <tbody>
-                                                <tr id="addr0" key="">
-                                                    <td>
-                                                        <div className="repeater">
-                                                            <div data-repeater-list="group-a">
-                                                                <Row data-repeater-item>
-                                                                    <Col lg="3" className="form-group">
-                                                                        <AvField name="unitFrom-0" label="UNIT FROM"
-                                                                            type="number" errorMessage="Enter UNIT FROM"
-                                                                            validate={{ required: { value: true } }} />
-                                                                    </Col>
-                                                                    <Col lg="3" className="form-group">
-                                                                        <AvField name="unitTo-0" label="UNIT TO"
-                                                                            type="number" errorMessage="Enter UNIT TO"
-                                                                            validate={{ required: { value: true } }} />
-                                                                    </Col>
-                                                                    <Col lg="4" className="form-group">
-                                                                        <AvField name="price-0" label="PRICE"
-                                                                            type="number" errorMessage="Enter PRICE"
-                                                                            validate={{ required: { value: true } }} />
-                                                                    </Col>
-                                                                    <Col lg="2" className="form-group align-self-center">
-                                                                        <Button size="sm" onClick={this.handleRemoveRow} color="danger" className="mt-4"> <i className="fa fa-trash"></i>  </Button>
-                                                                    </Col>
-                                                                </Row>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
+                            <Box component="form" onSubmit={this.handleSubmit} noValidate>
+                                
+                                {/* Plan Name */}
+                                <Grid container spacing={2} sx={{ mb: 3 }}>
+                                    <Grid item xs={12} sm={10}>
+                                        <TextField 
+                                            name="planName" 
+                                            label="PLAN NAME"
+                                            type="text" 
+                                            fullWidth
+                                            required
+                                            value={planName}
+                                            onChange={this.handlePlanNameChange}
+                                            size="small"
+                                        />
+                                    </Grid>
+                                </Grid>
 
-                                                {this.state.rows.map((item, idx) => (
-                                                    <tr id="addr0" key={idx}>
-                                                        <td>
-                                                            <div className="repeater" encType="multipart/form-data">
-                                                                <div data-repeater-list="group-a">
-                                                                    <Row data-repeater-item>
-                                                                        <Col lg="3" className="form-group">
-                                                                            <AvField name={`unitFrom-${idx+1}`} label=""
-                                                                                type="number" errorMessage="Enter UNIT FROM"
-                                                                                validate={{ required: { value: true } }} />
-                                                                        </Col>
-                                                                        <Col lg="3" className="form-group">
-                                                                            <AvField name={`unitTo-${idx+1}`} label=""
-                                                                                type="number" errorMessage="Enter UNIT TO"
-                                                                                validate={{ required: { value: true } }} />
-                                                                        </Col>
-                                                                        <Col lg="4" className="form-group">
-                                                                            <AvField name={`price-${idx+1}`} label=""
-                                                                                type="number" errorMessage="Enter PRICE"
-                                                                                validate={{ required: { value: true } }} />
-                                                                        </Col>
-                                                                        <Col lg="2" className="form-group align-self-center">
-                                                                            <Button size="sm" onClick={this.handleRemoveRow} color="danger" className="mt-3" ><i className="fa fa-trash"></i>  </Button>
-                                                                        </Col>
-                                                                    </Row>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                        
-                                        <Button size="sm" onClick={this.handleAddRow} color="info"><i className="fa fa-plus"></i> Add  More</Button>
-                                        <Button size="sm" type="submit" color="success" className="ml-2"> <i className="fa fa-check mr-1"></i> Save </Button>
-                                        
-                                    </FormControl>
-                                </CardBody>
-                            </Card>
-                        </Col>
-                    </Row>
-
-                    {/* --- KEY CHANGE (SWEETALERT BLOCK DELETED) --- */}
-                    {/* The old <SweetAlert> component is DELETED from the render method.
-                        It is now triggered as a function call in the 'addBundle' method. */}
-                    {/* {this.state.success_msg &&
-                        <SweetAlert
-                            style={{margin: 'inherit'}}
-                            title={this.state.success_message}
-                            confirmBtnBsStyle={this.state.modal_type}
-                            onConfirm={() => this.props.history.push('/viewBundlePlan')} 
-                            type={this.state.modal_type} >
-                        </SweetAlert> 
-                    } */}
-                    {/* --- END KEY CHANGE --- */}
-
-                </Container>
-            </React.Fragment>
+                                {/* Dynamic Bundle Rows */}
+                                <Box sx={{ border: '1px solid #eee', p: 2, borderRadius: 1 }}>
+                                    <InputLabel shrink sx={{ mb: 1, fontWeight: 'bold' }}>PRICE BUNDLES</InputLabel>
+                                    {rows.map((row) => (
+                                        <BundleRow 
+                                            key={row.id} 
+                                            row={row} 
+                                            handleRemove={this.handleRemoveRow} 
+                                        />
+                                    ))}
+                                </Box>
+                                
+                                {/* Add Row and Save Buttons */}
+                                <Box sx={{ mt: 3, display: 'flex', gap: 1 }}>
+                                    <MuiButton 
+                                        onClick={this.handleAddRow} 
+                                        variant="outlined" 
+                                        color="info" 
+                                        size="small"
+                                        startIcon={<AddIcon />}
+                                    >
+                                        Add More
+                                    </MuiButton>
+                                    <MuiButton 
+                                        type="submit" 
+                                        variant="contained" 
+                                        color="success" 
+                                        size="small"
+                                        startIcon={<SaveIcon />}
+                                        disabled={isAdding}
+                                    >
+                                        {isAdding ? 'Saving...' : 'Save'}
+                                    </MuiButton>
+                                </Box>
+                            </Box>
+                        </Paper>
+                    </Grid>
+                </Grid>
+            </Box>
         );
     }
 }

@@ -1,17 +1,15 @@
 import React, { Component } from 'react';
-import { Container, Row, Col, Card, CardBody, FormGroup, Button, Label } from 'reactstrap';
+// REMOVED: reactstrap imports
 import { activateAuthLayout, updateSmsBalance, getSmsBalance, openSnack } from '../../store/actions';
-
+import Select from 'react-select';
 // import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import Select from 'react-select';
-import {ServerApi} from '../../utils/ServerApi';
-import Message from '../../components/LanguageTransliterate/Message'
-import {Radio} from 'antd'
-import {getLoggedInUser} from '../../helpers/authUtils';
+import { ServerApi } from '../../utils/ServerApi';
+import Message from '../../components/LanguageTransliterate/Message';
+// REMOVED: import {Radio} from 'antd'
+import { getLoggedInUser } from '../../helpers/authUtils';
 import ContactsLoading from '../../components/Loading/ContactsLoading';
 import SmsSent from '../../components/Loading/SmsSent';
 import NoBalance from '../../components/Loading/NoBalance';
@@ -19,12 +17,22 @@ import MyTemplates from '../../components/MyTemplates';
 import TemplateMessageBox from '../../components/LanguageTransliterate/TemplateMessageBox';
 import SmsSending from '../../components/Loading/SmsSending';
 
-// --- KEY CHANGES (IMPORTS) ---
-// import SweetAlert from 'react-bootstrap-sweetalert'; // REMOVED: Outdated
-import Swal from 'sweetalert2'; // ADDED: Modern Alert Library
-import withReactContent from 'sweetalert2-react-content'; // ADDED: React wrapper
-import { FormControl } from '@mui/material';
-// --- END KEY CHANGES ---
+// --- MUI & Core Imports ---
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+import { 
+    Box, 
+    Grid, 
+    Paper, 
+    Typography, 
+    TextField, 
+    Button as MuiButton, // Renamed to avoid conflict with reactstrap
+    RadioGroup, 
+    FormControlLabel, 
+    Radio,
+    InputLabel // Used instead of reactstrap Label
+} from '@mui/material';
+// --- END MUI Imports ---
 
 // Initialize SweetAlert2
 const MySwal = withReactContent(Swal);
@@ -33,38 +41,31 @@ class SendGroupSms extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            selectedSenderId: null, 
+            selectedSenderId: null,
             selectedGroup: null,
-            senderId: null, 
-            smsGateway: null, 
+            senderId: null,
+            smsGateway: null,
             isSending: false,
             cSelected: [],
             savedMessages: [],
             message: '',
-            
-            // --- KEY CHANGE (STATE) ---
-            // These are no longer needed, as SweetAlert2 is called imperatively
-            // modal_type: 'success',
-            // success_msg: false,
-            // success_message: '',
-            // --- END KEY CHANGE ---
 
             groupLoading: false,
             remaningMessageCharacters: 160,
             totalMobileNumbers: 0,
             sheduleRequired: 'No',
-             showSavedMessage: false,
-             recipientList:"",
-             messageText: '',
-             defaultLanguage: "en",
-            translationLanguage : "en",
+            showSavedMessage: false,
+            recipientList: "",
+            messageText: '',
+            defaultLanguage: "en",
+            translationLanguage: "en",
             templateBased: false,
             selectedTemplateId: '',
-            combinedMessage:'',
+            combinedMessage: '',
             templates: [],
-            default_date: new Date(), default: false, start_date: new Date(), monthDate: new Date(), yearDate: new Date(), end_date: new Date(), date: new Date(),
+            default_date: new Date(),
         };
-        // ... (constructor bindings remain unchanged)
+        // Bindings
         this.handleDefault = this.handleDefault.bind(this);
         this.loadRoutes = this.loadRoutes.bind(this);
         this.loadGroups = this.loadGroups.bind(this);
@@ -75,12 +76,15 @@ class SendGroupSms extends Component {
         this.loadSavedMessages = this.loadSavedMessages.bind(this);
         this.loadContacts = this.loadContacts.bind(this);
         this.updateMessageHandler = this.updateMessageHandler.bind(this);
-        this.savedMessageHandler= this.savedMessageHandler.bind(this);
+        this.savedMessageHandler = this.savedMessageHandler.bind(this);
         this.sendSms = this.sendSms.bind(this);
         this.setMessageText = this.setMessageText.bind(this);
         this.saveDraft = this.saveDraft.bind(this);
         this.loadTemplates = this.loadTemplates.bind(this);
         this.pickedTemplate = this.pickedTemplate.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.handleRecipientListChange = this.handleRecipientListChange.bind(this);
+        this.sendSmsMui = this.sendSmsMui.bind(this); // New handler for MUI form
     }
 
     componentDidMount() {
@@ -88,161 +92,127 @@ class SendGroupSms extends Component {
         this.loadGroups();
         this.loadSenderIds();
         this.loadSavedMessages();
-        // this.loadTemplates();
         this.loadRoutes();
     }
 
-    // ... (all handle methods remain unchanged)
-    //Select 
+    // Select Handlers
     handleSelectSenderId = (selectedSenderId) => {
         this.loadTemplates(selectedSenderId.value);
         this.setState({ selectedSenderId });
     }
     handleSelectGroup = (selectedGroup) => {
-        if(selectedGroup === null){
-            this.setState({recipientList: ''})
+        if (selectedGroup === null) {
+            this.setState({ recipientList: '', totalMobileNumbers: 0 })
             return;
         };
-        
+
         this.setState({ selectedGroup });
-        //fetch contacts of selected group
-        // bind them to group contacts
         this.loadContacts(selectedGroup)
     }
-
     handleDefault(date) {
         this.setState({ default_date: date });
     }
-
-    handleSelectGroupSmsGateway  = (selectedItem) => {
+    handleSelectGroupSmsGateway = (selectedItem) => {
         this.setState({ smsGateway: selectedItem.value });
     }
-    
-    updateMessageHandler (message) {
-        console.log("onMessageChange - parent - group")
-        this.setState({messageText: message})
+
+    // Input Handlers
+    updateMessageHandler(message) {
+        this.setState({ messageText: message })
     }
-    savedMessageHandler () {
+    savedMessageHandler() {
         this.setState({ showSavedMessage: true });
     }
-
     setMessageText(value) {
-        console.log(value)
-        if(value != null) { 
+        if (value != null) {
             this.setState({ messageText: value });
         }
     }
-
     handleChange = e => {
         const { name, value } = e.target;
-
-        this.setState({
-          [name]: value
-        });
+        this.setState({ [name]: value });
     };
-    
-    // ... (all load methods remain unchanged)
-    loadSenderIds(){
+
+    // Handler for the recipient list textarea
+    handleRecipientListChange = (e) => {
+        const value = e.target.value;
+        const count = value.split(',').filter(n => n.trim() !== '').length;
+        this.setState({
+            recipientList: value,
+            totalMobileNumbers: count
+        });
+    }
+
+    // Loader methods (omitted body for brevity, but structure remains)
+    loadSenderIds() {
         if (getLoggedInUser().templateBased) {
             this.setState({ templateBased: true })
         }
         ServerApi().get(`getAllSenderIds/${getLoggedInUser().id}`)
-          .then(res => {
-            if (res.data === undefined) {
-                return false;
-            } 
-
-            let approvedIds = res.data.filter((i)=>i.status==='Approved');
-
-            let approvedIdsOptions = approvedIds.map(obj => ({
-                label: obj.senderId,
-                value: obj.senderId,
-            }))
-
-            this.setState({senderIds: approvedIdsOptions})
-        })
-        .catch(error => console.log('error', error));
+            .then(res => {
+                if (!res.data) { return false; }
+                let approvedIds = res.data.filter((i) => i.status === 'Approved');
+                let approvedIdsOptions = approvedIds.map(obj => ({
+                    label: obj.senderId,
+                    value: obj.senderId,
+                }))
+                this.setState({ senderIds: approvedIdsOptions })
+            })
+            .catch(error => console.log('error', error));
     }
 
-    loadRoutes(){
-
+    loadRoutes() {
         var arr = getLoggedInUser().routes.map(obj => ({
             label: obj.routeName,
             value: obj.id,
         }))
-
-        this.setState({smsGateways: arr})
+        this.setState({ smsGateways: arr })
     }
 
     loadSavedMessages() {
         ServerApi().get('sms/getAllSmsTemplates')
-          .then(res => {
-            if (res.data === undefined) {
-                return false;
-            } 
-
-            this.setState({savedMessages: res.data})
-            console.log(this.state.savedMessages);
-        })
-        .catch(error => console.log('error', error));
+            .then(res => {
+                if (!res.data) { return false; }
+                this.setState({ savedMessages: res.data })
+            })
+            .catch(error => console.log('error', error));
     }
 
     loadGroups() {
         ServerApi().get(`groups/getActiveGroups/${getLoggedInUser().id}`)
-          .then(res => {
-            if (res.data === undefined) {
-                return false;
-            } 
-
-            // console.log(res.data);
-            var arr = res.data.map(obj => ({
-                label: obj.groupName + "  ("+obj.contactsCount + ")",
-                value: obj,
-            }))
-
-            this.setState({groups: arr})
-        })
-        .catch(error => console.log('error', error));
+            .then(res => {
+                if (!res.data) { return false; }
+                var arr = res.data.map(obj => ({
+                    label: obj.groupName + "  (" + obj.contactsCount + ")",
+                    value: obj,
+                }))
+                this.setState({ groups: arr })
+            })
+            .catch(error => console.log('error', error));
     }
 
-    loadContacts(selectedGroups){
-
-        this.setState({groupLoading: true});
-
-        var raw = [];
-        selectedGroups.map((item,index) => {
-            raw[index] = item.value.id;
-            return true;
-        })
+    loadContacts(selectedGroups) {
+        this.setState({ groupLoading: true });
+        var raw = selectedGroups.map(item => item.value.id);
 
         ServerApi().post('groups/getContacts', raw)
-          .then(res => {
-            if (res.data === undefined) {
-                return false;
-            }
-            
-            var numbers = [];
-            res.data.map(item=>{
-                numbers.push(item.mobile);
-                return true;
-            });  
-            this.setState({groupLoading: false, recipientList: numbers.join(',') })
-        })
-        .catch(error => console.log('error', error));
+            .then(res => {
+                if (!res.data) { return false; }
+                var numbers = res.data.map(item => item.mobile);
+                this.setState({ groupLoading: false, recipientList: numbers.join(','), totalMobileNumbers: numbers.length })
+            })
+            .catch(error => console.log('error', error));
     }
 
-    loadTemplates(){
+    loadTemplates() {
         ServerApi().get(`sms/getAllSmsTemplates`)
-          .then(res => {
-            if (res.data === undefined) {
-                return false;
-            } 
-            let approvedTemplates = res.data.filter(i=>i.status!==0)
-            this.setState({templates: approvedTemplates})
-        })
-        .catch(error => console.log('error', error));
+            .then(res => {
+                if (!res.data) { return false; }
+                let approvedTemplates = res.data.filter(i => i.status !== 0)
+                this.setState({ templates: approvedTemplates })
+            })
+            .catch(error => console.log('error', error));
     }
-
 
     pickedTemplate(id) {
         const { templates } = this.state;
@@ -250,110 +220,103 @@ class SendGroupSms extends Component {
         this.setState({ variableValues: {}, selectedTemplateId: id, messageText: selected && selected.length > 0 ? selected[0].message : "" })
     }
 
-    sendSms(event, values){
-        if(this.state.selectedSenderId === null || values.recipients === null || values.recipients === ''){
-            this.props.openSnack({type: 'error', message: 'Please enter all required fields.'})
+    // MUI wrapper for form submission
+    sendSmsMui(event) {
+        event.preventDefault(); 
+        
+        // Mock values object based on new state structure for original sendSms function
+        const values = {
+            recipients: this.state.recipientList
+        };
+        this.sendSms(event, values);
+    }
+
+    sendSms(event, values) {
+        if (this.state.selectedSenderId === null || values.recipients === null || values.recipients.trim() === '') {
+            this.props.openSnack({ type: 'error', message: 'Please enter all required fields.' })
             return false;
         }
-        //if(!this.state.templateBased){
-            if (this.state.messageText.trim()===""){
-                this.props.openSnack({type: 'error', message: 'Please enter all required fields.'})
-                return false;
-            }
-        //}
-        if(getLoggedInUser().userType === 'ADMIN' || getLoggedInUser().userType === 'SUPER_ADMIN'){
-            if(this.state.smsGateway === null){
-                this.props.openSnack({type: 'error', message: 'Please enter all required fields.'})
+        if (this.state.messageText.trim() === "") {
+            this.props.openSnack({ type: 'error', message: 'Please enter all required fields.' })
+            return false;
+        }
+        if (getLoggedInUser().userType === 'ADMIN' || getLoggedInUser().userType === 'SUPER_ADMIN') {
+            if (this.state.smsGateway === null) {
+                this.props.openSnack({ type: 'error', message: 'Please enter all required fields.' })
                 return false;
             }
         }
 
-        //API
-        this.setState({isSending: true});
+        this.setState({ isSending: true });
 
-        // --- KEY CHANGE (LOADING SWEETALERT) ---
         // Show the loading modal *before* making the API call
         MySwal.fire({
-            html: <SmsSending />, // Use the existing React component
+            html: <SmsSending />, 
             title: 'Sending SMS...',
             showConfirmButton: false,
             allowOutsideClick: false,
         });
-        // --- END KEY CHANGE ---
 
         var raw = JSON.stringify({
             requestType: "QUICKSMS",
-            payload:{
-                smsGateway: (getLoggedInUser().userType === 'RESELLER' || getLoggedInUser().userType === 'USER')?getLoggedInUser().routes[0].id:this.state.smsGateway,
-                senderId:this.state.selectedSenderId.value,
-                countryCode:"+91",
-                globalStatus:"true",
-                recipients : values.recipients,
-                delimiter : ",",
-                removeDuplicate : "true",
-                messageType : this.props.sms_type,
+            payload: {
+                smsGateway: (getLoggedInUser().userType === 'RESELLER' || getLoggedInUser().userType === 'USER') ? getLoggedInUser().routes[0].id : this.state.smsGateway,
+                senderId: this.state.selectedSenderId.value,
+                countryCode: "+91",
+                globalStatus: "true",
+                recipients: values.recipients,
+                delimiter: ",",
+                removeDuplicate: "true",
+                messageType: this.props.sms_type,
                 message: this.state.messageText,
                 templateId: this.state.selectedTemplateId,
             }
         });
 
         ServerApi().post('sms/sendQuickSms', raw)
-          .then(res => {
-            this.setState({
-                selectedSenderId: {label: 'Select', value: 0},
-                messageText: '',
-                recipients: '',
-                selectedGroup: null,
+            .then(res => {
+                this.setState({
+                    selectedSenderId: { label: 'Select', value: 0 },
+                    messageText: '',
+                    recipientList: '',
+                    selectedGroup: null,
+                });
+
+                setTimeout(() => {
+                    MySwal.close(); // Close the loading modal
+                    this.setState({ isSending: false });
+                    this.props.openSnack({ type: 'success', message: 'SMS sent.' })
+                }, 2300)
+
+                // this.form && this.form.reset(); // Removed as we use controlled inputs
+                this.loadBalance();
+            })
+            .catch(error => {
+                MySwal.close(); // Close the loading modal on error
+                this.props.openSnack({ type: 'error', message: 'Unable to send SMS' });
+                this.setState({ isSending: false });
+                console.log('error', error);
             });
-
-            setTimeout(()=>{
-                // --- KEY CHANGE (CLOSE LOADING ALERT) ---
-                MySwal.close(); // Close the loading modal
-                // --- END KEY CHANGE ---
-
-                this.setState({isSending: false});
-                this.props.openSnack({type: 'success', message: 'SMS sent.'})
-            },2300)
-
-            this.form && this.form.reset();
-            this.loadBalance();
-          })
-          .catch(error => {
-            // --- KEY CHANGE (CLOSE LOADING ALERT) ---
-            MySwal.close(); // Close the loading modal on error
-            // --- END KEY CHANGE ---
-            this.props.openSnack({type: 'error', message: 'Unable to send SMS'});
-            this.setState({isSending: false});
-            console.log('error', error);
-          });
     }
 
-    // for user
-    loadBalance(){
-       // ... (loadBalance function remains unchanged)
-        if(getLoggedInUser().userType === 'SUPER_ADMIN'){return false;}
+    loadBalance() {
+        if (getLoggedInUser().userType === 'SUPER_ADMIN') { return false; }
 
         ServerApi().get(`client/getBalance/${getLoggedInUser().id}`)
-          .then(res => {
-            if (res.data === undefined) {
-                return false;
-            } 
-            
-            this.props.updateSmsBalance(Math.round((parseFloat(res.data.response) + Number.EPSILON) * 1000000) / 1000000);
-        })
-        .catch(error => console.log('error', error));
+            .then(res => {
+                if (res.data === undefined) { return false; }
+                this.props.updateSmsBalance(Math.round((parseFloat(res.data.response) + Number.EPSILON) * 1000000) / 1000000);
+            })
+            .catch(error => console.log('error', error));
     }
 
     saveDraft() {
-        console.log('saveDraft')
-        console.log(this.state.messageText)
-        if(this.state.messageText === ''){
+        if (this.state.messageText === '') {
             return false;
         }
 
-        this.setState({isDrafting: true});
-        
-        // --- KEY CHANGE (LOADING SWEETALERT) ---
+        this.setState({ isDrafting: true });
+
         // Show loading modal for drafting
         MySwal.fire({
             html: <SmsSending />,
@@ -361,212 +324,195 @@ class SendGroupSms extends Component {
             showConfirmButton: false,
             allowOutsideClick: false,
         });
-        // --- END KEY CHANGE ---
-        
+
         let raw = JSON.stringify({
             templateName: this.state.messageText.replace(' ', '_'),
             message: this.state.messageText
         });
 
         ServerApi().post('sms/saveSmsTemplate', raw)
-          .then(res => {
-            if (res.data === undefined) {
-                return false;
-            } 
+            .then(res => {
+                if (res.data === undefined) { return false; }
 
-            // --- KEY CHANGE (STATUS SWEETALERT) ---
-            // this.setState({modal_type: 'success', success_msg: true, success_message : 'Message saved as draft', isDrafting: false}); // REMOVED
-            this.setState({ isDrafting: false });
-            
-            // Replicate the logic from the old <SweetAlert>
-            MySwal.fire({
-                html: (
-                    <div>
-                        <SmsSent />
-                        <h6>Message saved as draft</h6>
-                    </div>
-                ),
-                icon: 'success'
-            }).then(() => {
-                // This was the original onConfirm action
-                setTimeout(()=>{
-                    window.location.reload()
-                },750);
+                this.setState({ isDrafting: false });
+
+                MySwal.fire({
+                    html: (
+                        <div>
+                            <SmsSent />
+                            <h6>Message saved as draft</h6>
+                        </div>
+                    ),
+                    icon: 'success'
+                }).then(() => {
+                    setTimeout(() => {
+                        window.location.reload()
+                    }, 750);
+                });
+            })
+            .catch(error => {
+                console.log('error', error);
+                this.setState({ isDrafting: false });
+                MySwal.close(); // Close loading modal on error
+                this.props.openSnack({ type: 'error', message: 'Unable to save draft.' });
             });
-            // --- END KEY CHANGE ---
-        })
-        .catch(error => {
-            console.log('error', error);
-            this.setState({ isDrafting: false });
-            MySwal.close(); // Close loading modal on error
-            this.props.openSnack({type: 'error', message: 'Unable to save draft.'});
-        });
     }
 
     render() {
         const { selectedSenderId } = this.state;
 
         return (
-            <React.Fragment>
-                <Container fluid>
-                    {/* ... (All JSX in the render method remains unchanged, EXCEPT for the SweetAlert blocks) ... */}
-                    
-                    <div className="page-title-box">
-                        <Row className="align-items-center">
+            <Box sx={{ p: 3 }}>
+                
+                <Box className="page-title-box" sx={{ mb: 3 }}>
+                    <Typography variant="h4">SEND GROUP SMS</Typography>
+                </Box>
 
-                            <Col sm="6">
-                                <h4 className="page-title">SEND GROUP SMS</h4>
-                            </Col>
-                        </Row>
-                    </div>
-
-                    <Row>
-                        <Col lg="6">
-                            <Card>
-                                <CardBody>
-
-                                    <FormControl onValidSubmit={this.sendSms} ref={c => (this.form = c)}>
-                                        <Row className="mb-2">
-                                        {getLoggedInUser().userType !== 'RESELLER' && getLoggedInUser().userType !== 'CLIENT' && (
-                                            <Col md="12">
-                                                <Label>SMS Gateway</Label>
-                                                <Select
-                                                    className="mb-3 field-required"
-                                                    label="ROUTE"
-                                                    name="smsGateway"
-                                                    onChange={this.handleSelectGroupSmsGateway}
-                                                    options={this.state.smsGateways}
-                                                    validate={{ required: { value: true } }} 
-                                                    required
-                                                />
-                                            </Col>
-                                            )}
-
-                                            <Col md="12">                                            
-                                                <Label>SENDER ID</Label>
-                                                <Select
-                                                    className="mb-3 field-required"
-                                                    label="SENDER ID"
-                                                    name="senderId"
-                                                    value={selectedSenderId}
-                                                    onChange={this.handleSelectSenderId}
-                                                    options={this.state.senderIds}
-                                                    validate={{ required: { value: true } }} 
-                                                    required
-                                                />
-                                            </Col>
-                                        </Row>
-
-                                        <Label>GROUP</Label>
+                <Grid container spacing={3}>
+                    <Grid item xs={12} lg={6}>
+                        <Paper elevation={1} sx={{ p: 3 }}>
+                            
+                            <Box component="form" onSubmit={this.sendSmsMui} noValidate>
+                                
+                                <Grid container spacing={2} className="mb-2">
+                                    {getLoggedInUser().userType !== 'RESELLER' && getLoggedInUser().userType !== 'CLIENT' && (
+                                        <Grid item xs={12}>
+                                            <InputLabel shrink sx={{ mb: 0.5 }}>SMS Gateway</InputLabel>
                                             <Select
-                                                className="mb-3 field-required"
-                                                isMulti
-                                                label="GROUP"
-                                                name="groups"
-                                                onChange={this.handleSelectGroup}
-                                                options={this.state.groups}
+                                                className="MuiSelect-root-full-width"
+                                                name="smsGateway"
+                                                onChange={this.handleSelectGroupSmsGateway}
+                                                options={this.state.smsGateways}
+                                                required
                                             />
-                                        
-                                        {this.state.groupLoading && (
-                                            <FormGroup>
-                                                <ContactsLoading />
-                                            </FormGroup>
-                                        )}
+                                        </Grid>
+                                    )}
 
-                                        <FormGroup className="mb-3">
-                                        <AvField 
-                                            name="recipients" placeholder="Groups Contacts" 
-                                            label ="Groups Contacts"
-                                            type="textarea" 
-                                            rows={3} 
-                                            errorMessage="Enter Groups Contacts"
-                                            validate={{ required: { value: true } }} 
-                                            style={{marginBottom: 0}} 
-                                            value={this.state.recipientList}
+                                    <Grid item xs={12}>
+                                        <InputLabel shrink sx={{ mb: 0.5 }}>SENDER ID</InputLabel>
+                                        <Select
+                                            className="MuiSelect-root-full-width"
+                                            name="senderId"
+                                            value={selectedSenderId}
+                                            onChange={this.handleSelectSenderId}
+                                            options={this.state.senderIds}
+                                            required
+                                        />
+                                    </Grid>
+                                </Grid>
+
+                                <Box sx={{ mb: 2 }}>
+                                    <InputLabel shrink sx={{ mb: 0.5 }}>GROUP</InputLabel>
+                                    <Select
+                                        className="MuiSelect-root-full-width"
+                                        isMulti
+                                        name="groups"
+                                        onChange={this.handleSelectGroup}
+                                        options={this.state.groups}
+                                    />
+                                </Box>
+                                
+                                {this.state.groupLoading && (
+                                    <Box sx={{ my: 2 }}><ContactsLoading /></Box>
+                                )}
+
+                                <Box sx={{ mb: 3 }}>
+                                    <TextField
+                                        name="recipients"
+                                        label="Groups Contacts (Comma separated)"
+                                        multiline
+                                        rows={3}
+                                        fullWidth
+                                        required
+                                        variant="outlined"
+                                        value={this.state.recipientList}
+                                        onChange={this.handleRecipientListChange}
+                                        sx={{ mb: 0.5 }}
+                                        inputProps={{ style: { overflow: 'auto' } }}
+                                    />
+                                    <Grid container>
+                                        <Grid item xs={12} md={6}>
+                                            <Typography variant="caption" color="textSecondary">
+                                                No of mobile numbers: <b>{this.state.totalMobileNumbers}</b>
+                                            </Typography>
+                                        </Grid>
+                                    </Grid>
+                                </Box>
+
+                                {/* Message Input Area */}
+                                {this.state.templateBased && this.state.selectedTemplateId ? (
+                                    <Message messageText={this.state.messageText} messageHandler={this.updateMessageHandler} savedMessageHandler={this.savedMessageHandler} noExtraOptions={true} />
+                                ) : (
+                                    <Message messageText={this.state.messageText} messageHandler={this.updateMessageHandler} savedMessageHandler={this.savedMessageHandler} />
+                                )}
+
+                                {/* Schedule Radio Group - Replaces Antd Radio.Group */}
+                                <Box sx={{ my: 2 }}>
+                                    <InputLabel shrink sx={{ mr: 1, display: 'inline-block' }}>Send Later:</InputLabel>
+                                    <RadioGroup 
+                                        row 
+                                        name="sheduleRequired" 
+                                        value={this.state.sheduleRequired} 
+                                        onChange={this.handleChange}
+                                        sx={{ display: 'inline-block' }}
+                                    >
+                                        <FormControlLabel value="Yes" control={<Radio size="small" />} label="Yes" />
+                                        <FormControlLabel value="No" control={<Radio size="small" />} label="No" />
+                                    </RadioGroup>
+
+                                    {this.state.sheduleRequired === 'Yes' &&
+                                        <Box sx={{ mt: 1 }}>
+                                            <DatePicker
+                                                className="MuiForm-control MuiOutlinedInput-root"
+                                                selected={this.state.default_date}
+                                                onChange={this.handleDefault}
+                                                showTimeSelect
+                                                dateFormat="Pp"
                                             />
-                                        <Row>
-                                            <Col md="6 mb-3 ">
-                                                <span className="caption">No of mobile numbers <b>{this.state.totalMobileNumbers}</b></span>
-                                            </Col>
-                                        </Row>
-                                        </FormGroup>
-
-                                        {this.state.templateBased && this.state.selectedTemplateId && (
-                                            <Message messageText={this.state.messageText} messageHandler={this.updateMessageHandler} savedMessageHandler={this.savedMessageHandler} noExtraOptions={true} />
-                                        )}
-                                        
-                                        {!this.state.templateBased && (
-                                            <Message messageText={this.state.messageText} messageHandler={this.updateMessageHandler} savedMessageHandler={this.savedMessageHandler}/>
-                                        )}
-
-                                        <div>
-                                            <Radio.Group onChange={this.handleChange} name="sheduleRequired" value={this.state.sheduleRequired}>
-                                                <Label style={{marginRight: '10px'}}>Send Later: </Label>
-                                                <Radio value={'Yes'}>Yes</Radio>
-                                                <Radio value={'No'}>No</Radio>
-                                            </Radio.Group>
-
-                                            {this.state.sheduleRequired === 'Yes' && 
-                                                <DatePicker
-                                                    className="form-control"
-                                                    selected={this.state.default_date}
-                                                    onChange={this.handleDefault}
-                                                    showTimeSelect
-                                                    dateFormat="Pp"
-                                                    />
-                                            }
-                                        </div>
+                                        </Box>
+                                    }
+                                </Box>
 
 
-                                        <div className="mt-3 mb-0">
-                                            <div>
-                                                <Button size="sm" style={{float: 'right'}} type="submit" disabled={this.state.isSending} color="primary" className="mr-1">
-                                                    <i className="fa fa-paper-plane mr-2"></i> {(this.state.isSending)?'Please Wait...':'Send'}
-                                                </Button>
-                                                {/* (saveDraft button remains unchanged) */}
-                                            </div>
-                                        </div>
+                                <Box sx={{ mt: 3, mb: 0, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                                    <MuiButton 
+                                        size="small" 
+                                        variant="contained"
+                                        type="submit" 
+                                        disabled={this.state.isSending} 
+                                        color="primary"
+                                    >
+                                        <i className="fa fa-paper-plane mr-2"></i> 
+                                        {(this.state.isSending) ? 'Please Wait...' : 'Send'}
+                                    </MuiButton>
+                                    <MuiButton 
+                                        size="small" 
+                                        variant="outlined" 
+                                        onClick={this.saveDraft}
+                                        disabled={this.state.isDrafting}
+                                    >
+                                        <i className="fa fa-save mr-2"></i> Save Draft
+                                    </MuiButton>
+                                </Box>
 
-                                    </FormControl>
+                            </Box>
+                        </Paper>
+                    </Grid>
 
-                                </CardBody>
-                            </Card>
-                        </Col>
-
-                        {this.state.selectedSenderId !== null && this.state.templateBased && (this.state.templates.length > 0) &&
-                            <MyTemplates templates={this.state.templates} pickedTemplate={this.pickedTemplate} />
-                        }
-
-                    </Row>
-
-                    {/* --- KEY CHANGE (SWEETALERT BLOCKS DELETED) --- */}
-                    {/* Both <SweetAlert> blocks (for loading and success) are
-                        deleted from the render method. They are now triggered
-                        imperatively (as function calls) in the 'sendSms' 
-                        and 'saveDraft' methods. */}
-                    
-                    {/* {(this.state.isSending || this.state.isDrafting) &&
-                        <SweetAlert ... >
-                        </SweetAlert> 
-                    } */}
-
-                    {/* {this.state.success_msg &&
-                        <SweetAlert ... >
-                        </SweetAlert> 
-                    } */}
-                    {/* --- END KEY CHANGE --- */}
-
-                </Container>
-            </React.Fragment>
+                    {/* Templates Section */}
+                    {this.state.selectedSenderId !== null && this.state.templateBased && (this.state.templates.length > 0) &&
+                        <MyTemplates templates={this.state.templates} pickedTemplate={this.pickedTemplate} />
+                    }
+                </Grid>
+            </Box>
         );
     }
 }
 
-// ... (mapStateToProps and export remain unchanged)
 const mapStatetoProps = state => {
-    const {sms_balance} = state.User;
-    const {sms_type} = state.Sms;
+    const { sms_balance } = state.User;
+    const { sms_type } = state.Sms;
     return { sms_balance, sms_type };
-  }
-  
+}
+
 export default connect(mapStatetoProps, { activateAuthLayout, updateSmsBalance, getSmsBalance, openSnack })(SendGroupSms);

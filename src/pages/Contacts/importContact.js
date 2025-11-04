@@ -1,10 +1,24 @@
 import React, { Component } from 'react';
-import { Container, Row, Col, Card, CardBody, FormGroup, Label, Button, ButtonGroup } from 'reactstrap';
+// REMOVED: { Container, Row, Col, Card, CardBody, FormGroup, Label, Button, ButtonGroup } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-import Select from 'react-select';
-// import { withRouter } from 'react-router-dom';
-
+import Select from 'react-select'; // RETAINED: For advanced select functionality
 import { connect } from 'react-redux';
+
+// --- MUI & Core Imports ---
+import { 
+    Box, 
+    Grid, 
+    Paper, 
+    Typography, 
+    TextField, 
+    Button as MuiButton, 
+    InputLabel, 
+    FormControlLabel, 
+    Checkbox,
+    ToggleButton, 
+    ToggleButtonGroup 
+} from '@mui/material';
+// --- END MUI Imports ---
 
 const CLIENT_GROUP_STATUS = [
     {
@@ -16,162 +30,255 @@ const CLIENT_GROUP_STATUS = [
     }
 ];
 
+// Delimiters data structure for the ToggleButtonGroup
+const DELIMITERS = [
+    { label: 'AUTOMATIC', value: 'AUTO' },
+    { label: ';', value: 'SEMICOLON' },
+    { label: ',', value: 'COMMA' },
+    { label: '|', value: 'PIPE' },
+    { label: 'TAB', value: 'TAB' },
+    { label: 'NEW LINE', value: 'NEWLINE' },
+];
+
 class ImportContact extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            selectedGroup: null, 
-            selectedMulti: null,
-            cSelected: [],
+            selectedGroup: null, // For select inputs
+            cSelected: ['AUTO'], // For delimiter buttons (using value, not index)
+            pasteNumbers: '',
+            importFile: null,
+            firstRowAsHeader: false,
+            countryCode: null,
+            importListInto: null,
+            isImporting: false,
         };
-        this.onCheckboxBtnClick = this.onCheckboxBtnClick.bind(this);
+        this.handleSelectGroup = this.handleSelectGroup.bind(this);
+        this.handlePasteNumbersChange = this.handlePasteNumbersChange.bind(this);
+        this.handleDelimiterChange = this.handleDelimiterChange.bind(this);
+        this.handleFileChange = this.handleFileChange.bind(this);
+        this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
+        this.handleImportSubmit = this.handleImportSubmit.bind(this);
     }
 
     componentDidMount() {
         this.props.activateAuthLayout();
+        // Placeholder to load actual group/country data if API were available
     }
 
-    onCheckboxBtnClick(selected) {
-        const index = this.state.cSelected.indexOf(selected);
-        if (index < 0) {
-            this.state.cSelected.push(selected);
-        } else {
-            this.state.cSelected.splice(index, 1);
-        }
-        this.setState({ cSelected: [...this.state.cSelected] });
+    // Select Handler for react-select
+    handleSelectGroup = (name, selectedOption) => {
+        this.setState({ [name]: selectedOption });
     }
 
-    
-    //Select 
-    handleSelectGroup = (selectedGroup) => {
-        this.setState({ selectedGroup });
+    // Textarea Handler for pasting numbers
+    handlePasteNumbersChange = (e) => {
+        this.setState({ pasteNumbers: e.target.value });
     }
+
+    // Delimiter Handler (replaces onCheckboxBtnClick)
+    handleDelimiterChange = (event, newDelimiter) => {
+        // Allow selection of multiple delimiters, similar to original ButtonGroup
+        this.setState({ cSelected: newDelimiter });
+    }
+
+    // File Input Handler
+    handleFileChange = (e) => {
+        this.setState({ importFile: e.target.files[0] });
+    }
+
+    // Checkbox Handler
+    handleCheckboxChange = (e) => {
+        this.setState({ [e.target.name]: e.target.checked });
+    }
+
+    // Main Submission Handler
+    handleImportSubmit = (e) => {
+        e.preventDefault();
+        this.setState({ isImporting: true });
+        
+        // --- Dummy Submission Logic ---
+        const importMode = this.state.importFile ? 'File' : 'Paste';
+        const payload = {
+            mode: importMode,
+            delimiter: this.state.cSelected,
+            group: this.state.importListInto?.label || 'N/A',
+        };
+
+        console.log("Submitting import:", payload);
+
+        setTimeout(() => {
+            alert(`Import simulation started in ${importMode} mode.`);
+            this.setState({ isImporting: false });
+        }, 2000);
+        // --- End Dummy Submission Logic ---
+    }
+
 
     render() {
 
-        const { selectedGroup } = this.state;
+        const { selectedGroup, pasteNumbers, cSelected, importFile, firstRowAsHeader, isImporting } = this.state;
 
         return (
-            <React.Fragment>
-                <Container fluid>
-                    <div className="page-title-box">
-                        <Row className="align-items-center">
-                            <Col sm="6">
-                                <h4 className="page-title">IMPORT CONTACTS</h4>
-                            </Col>
-                        </Row>
-                    </div>
+            <Box sx={{ p: 3 }}>
+                <Box className="page-title-box" sx={{ mb: 3 }}>
+                    <Typography variant="h4">IMPORT CONTACTS</Typography>
+                </Box>
 
-                    <Row>
-                        <Col sm="12" lg="4">
-                            <Card>
-                                <CardBody>
-                                    <h5 className="mt-0 header-title">IMPORT CONTACT BY FILE</h5>
+                <Grid container spacing={3}>
+                    {/* LEFT COLUMN: IMPORT CONTACT BY FILE (4/12) */}
+                    <Grid item xs={12} lg={4}>
+                        <Paper elevation={1} sx={{ p: 3 }}>
+                            <Typography variant="h5" sx={{ mb: 2 }}>IMPORT CONTACT BY FILE</Typography>
 
-                                    <Button type="submit" color="primary" className="mb-3">
-                                        Download Sample File
-                                    </Button>
+                            <MuiButton variant="contained" color="primary" sx={{ mb: 3 }}>
+                                Download Sample File
+                            </MuiButton>
 
-                                    <FormControl>
-                                        <AvField name="import_numbers" label="IMPORT NUMBERS"
-                                            type="file"
-                                            validate={{ required: { value: false } }} />
-                                        <AvField name="form_as_header" label="FIRST ROW AS HEADER"
-                                            type="checkbox" 
-                                            validate={{ required: { value: false } }} />
+                            <Box component="form" onSubmit={this.handleImportSubmit} noValidate>
+                                
+                                {/* IMPORT NUMBERS (File Input) */}
+                                <InputLabel shrink sx={{ mb: 0.5, mt: 1 }}>IMPORT NUMBERS (File)</InputLabel>
+                                <TextField
+                                    name="import_numbers"
+                                    type="file"
+                                    fullWidth
+                                    variant="outlined"
+                                    size="small"
+                                    required={!pasteNumbers} // Required if pasteNumbers is empty
+                                    onChange={this.handleFileChange}
+                                    InputLabelProps={{ shrink: true }}
+                                    inputProps={{ accept: ".csv, .txt, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" }}
+                                />
+                                {importFile && (
+                                    <Typography variant="caption" color="textPrimary">Selected: {importFile.name}</Typography>
+                                )}
 
-                                        <FormGroup>
-                                            <Label>COUNTRY CODE </Label>
-                                            <Select
-                                                label="COUNTRY CODE"
-                                                value={selectedGroup}
-                                                onChange={this.handleSelectGroup}
-                                                options={CLIENT_GROUP_STATUS}
+                                {/* FIRST ROW AS HEADER (Checkbox) */}
+                                <Box sx={{ mt: 1, mb: 2 }}>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                name="firstRowAsHeader"
+                                                checked={firstRowAsHeader}
+                                                onChange={this.handleCheckboxChange}
+                                                color="primary"
                                             />
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <Label>IMPORT LIST INTO </Label>
-                                            <Select
-                                                label="IMPORT LIST INTO"
-                                                value={selectedGroup}
-                                                onChange={this.handleSelectGroup}
-                                                options={CLIENT_GROUP_STATUS}
-                                            />
-                                        </FormGroup>
+                                        }
+                                        label="FIRST ROW AS HEADER"
+                                    />
+                                </Box>
 
-                                        <FormGroup className="mb-0">
-                                            <div>
-                                                <Button type="submit" color="success" className="mr-1">
-                                                    Add
-                                                </Button>
-                                            </div>
-                               
-                                       </FormGroup>
+                                {/* COUNTRY CODE (react-select) */}
+                                <InputLabel shrink sx={{ mb: 0.5 }}>COUNTRY CODE</InputLabel>
+                                <Select
+                                    className="MuiSelect-root-full-width mb-3"
+                                    name="countryCode"
+                                    value={this.state.countryCode}
+                                    onChange={(opt) => this.handleSelectGroup('countryCode', opt)}
+                                    options={CLIENT_GROUP_STATUS} // Using placeholder options
+                                    placeholder="Select Country Code"
+                                />
 
-                                    </FormControl>
+                                {/* IMPORT LIST INTO (react-select) */}
+                                <InputLabel shrink sx={{ mb: 0.5 }}>IMPORT LIST INTO</InputLabel>
+                                <Select
+                                    className="MuiSelect-root-full-width mb-3"
+                                    name="importListInto"
+                                    value={this.state.importListInto}
+                                    onChange={(opt) => this.handleSelectGroup('importListInto', opt)}
+                                    options={CLIENT_GROUP_STATUS} // Using placeholder options
+                                    placeholder="Select Group"
+                                />
 
-                                </CardBody>
-                            </Card>
-                        </Col>
+                                {/* Submission Button */}
+                                <MuiButton 
+                                    type="submit" 
+                                    variant="contained" 
+                                    color="success" 
+                                    fullWidth
+                                    disabled={isImporting || !importFile}
+                                >
+                                    {isImporting ? 'Importing File...' : 'Import'}
+                                </MuiButton>
 
-                        <Col sm="12" lg="8">
-                            <Card>
-                                <CardBody>
-                                    <h4 className="mt-0 header-title">IMPORT BY NUMBERS</h4>
+                            </Box>
+                        </Paper>
+                    </Grid>
 
-                                    <FormControl>
-                                        <FormGroup>
-                                            <Label>COUNTRY CODE </Label>
-                                            <Select
-                                                label="COUNTRY CODE"
-                                                value={selectedGroup}
-                                                onChange={this.handleSelectGroup}
-                                                options={CLIENT_GROUP_STATUS}
-                                            />
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <AvField name="paste_numbers" label="PASTE NUMBERS"
-                                            type="textarea" rows={3} 
-                                            validate={{ required: { value: false } }} />
-                                        </FormGroup>
+                    {/* RIGHT COLUMN: IMPORT BY NUMBERS (8/12) */}
+                    <Grid item xs={12} lg={8}>
+                        <Paper elevation={1} sx={{ p: 3 }}>
+                            <Typography variant="h5" sx={{ mb: 2 }}>IMPORT BY NUMBERS</Typography>
 
-                                        <Label className="mr-3">CHOOSE DELIMITER</Label>
-                                        <ButtonGroup>
-                                            <Button color="info" onClick={() => this.onCheckboxBtnClick(1)} active={this.state.cSelected.includes(1)}>AUTOMATIC</Button>
-                                            <Button color="info" onClick={() => this.onCheckboxBtnClick(2)} active={this.state.cSelected.includes(2)}>;</Button>
-                                            <Button color="info" onClick={() => this.onCheckboxBtnClick(3)} active={this.state.cSelected.includes(3)}>,</Button>
-                                            <Button color="info" onClick={() => this.onCheckboxBtnClick(3)} active={this.state.cSelected.includes(3)}>|</Button>
-                                            <Button color="info" onClick={() => this.onCheckboxBtnClick(3)} active={this.state.cSelected.includes(3)}>TAB</Button>
-                                            <Button color="info" onClick={() => this.onCheckboxBtnClick(3)} active={this.state.cSelected.includes(3)}>NEW LINE</Button>
-                                        </ButtonGroup>
-                                        
-                                        <FormGroup className="mt-3">
-                                            <Label>IMPORT LIST INTO </Label>
-                                            <Select
-                                                label="IMPORT LIST INTO"
-                                                value={selectedGroup}
-                                                onChange={this.handleSelectGroup}
-                                                options={CLIENT_GROUP_STATUS}
-                                            />
-                                        </FormGroup>
+                            <Box component="form" onSubmit={this.handleImportSubmit} noValidate>
+                                {/* COUNTRY CODE (react-select) */}
+                                <InputLabel shrink sx={{ mb: 0.5 }}>COUNTRY CODE</InputLabel>
+                                <Select
+                                    className="MuiSelect-root-full-width mb-3"
+                                    name="countryCode"
+                                    value={this.state.countryCode}
+                                    onChange={(opt) => this.handleSelectGroup('countryCode', opt)}
+                                    options={CLIENT_GROUP_STATUS} // Using placeholder options
+                                    placeholder="Select Country Code"
+                                />
 
-                                        <FormGroup className="mb-0">
-                                            <div>
-                                                <Button type="submit" color="success" className="mr-1">
-                                                    Add
-                                                </Button>
-                                            </div>
-                               
-                                       </FormGroup>
+                                {/* PASTE NUMBERS (Textarea) */}
+                                <InputLabel shrink sx={{ mb: 0.5 }}>PASTE NUMBERS</InputLabel>
+                                <TextField
+                                    name="paste_numbers"
+                                    multiline
+                                    rows={3}
+                                    fullWidth
+                                    variant="outlined"
+                                    value={pasteNumbers}
+                                    onChange={this.handlePasteNumbersChange}
+                                    required={!importFile} // Required if importFile is null
+                                    sx={{ mb: 2 }}
+                                />
 
-                                    </FormControl>
-                                </CardBody>
-                            </Card>
-                        </Col>
-                    </Row>
+                                {/* CHOOSE DELIMITER (ToggleButtonGroup) */}
+                                <InputLabel shrink sx={{ mb: 0.5 }}>CHOOSE DELIMITER</InputLabel>
+                                <ToggleButtonGroup
+                                    value={cSelected}
+                                    onChange={this.handleDelimiterChange}
+                                    aria-label="text formatting"
+                                    size="small"
+                                    sx={{ flexWrap: 'wrap', mb: 3 }}
+                                >
+                                    {DELIMITERS.map((delimiter) => (
+                                        <ToggleButton key={delimiter.value} value={delimiter.value} color="info">
+                                            {delimiter.label}
+                                        </ToggleButton>
+                                    ))}
+                                </ToggleButtonGroup>
+                                
+                                {/* IMPORT LIST INTO (react-select) */}
+                                <InputLabel shrink sx={{ mb: 0.5 }}>IMPORT LIST INTO</InputLabel>
+                                <Select
+                                    className="MuiSelect-root-full-width mb-3"
+                                    name="importListInto"
+                                    value={this.state.importListInto}
+                                    onChange={(opt) => this.handleSelectGroup('importListInto', opt)}
+                                    options={CLIENT_GROUP_STATUS} // Using placeholder options
+                                    placeholder="Select Group"
+                                />
 
-                </Container>
-            </React.Fragment>
+                                {/* Submission Button */}
+                                <MuiButton 
+                                    type="submit" 
+                                    variant="contained" 
+                                    color="success" 
+                                    fullWidth
+                                    disabled={isImporting || (!importFile && !pasteNumbers)}
+                                >
+                                    {isImporting ? 'Importing Numbers...' : 'Add'}
+                                </MuiButton>
+                            </Box>
+                        </Paper>
+                    </Grid>
+                </Grid>
+            </Box>
         );
     }
 }

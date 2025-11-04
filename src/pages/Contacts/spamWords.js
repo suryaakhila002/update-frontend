@@ -1,51 +1,72 @@
 import React, { Component } from 'react';
-import { Container, Row, Col, Card, CardBody, FormGroup, Button } from 'reactstrap';
+// REMOVED: { Container, Row, Col, Card, CardBody, FormGroup, Button } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
 // import { withRouter } from 'react-router-dom';
 
 import { connect } from 'react-redux';
 
-// --- KEY CHANGES (IMPORTS) ---
-// import { MDBDataTable } from 'mdbreact'; // REMOVED: Outdated
-import { DataGrid } from '@mui/x-data-grid'; // ADDED: Modern Data Table
-import { Box } from '@mui/material'; // ADDED: For layout
-// --- END KEY CHANGES ---
+// --- MUI & Core Imports ---
+import { DataGrid } from '@mui/x-data-grid';
+import { 
+    Box, 
+    Grid, 
+    Paper, 
+    Typography, 
+    TextField, 
+    Button as MuiButton, // Renamed to avoid conflicts
+    InputLabel
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+// --- END MUI Imports ---
 
 class SpamWords extends Component {
     constructor(props) {
         super(props);
         this.state = {
             selectedGroup: null, 
-            selectedMulti: null,
-            cSelected: [],
+            spamWordInput: '', // State for the new word input
+            cSelected: [], // Retained for original onCheckboxBtnClick, though currently unused in render
+            isAdding: false,
 
-            // --- KEY CHANGE (DATAGRID) ---
-            // Define columns for MUI DataGrid
+            // DataGrid Columns
             columns: [
                 {
                     field: 'words',
                     headerName: 'WORDS',
-                    width: 200 // Adjusted width
+                    width: 200, // Adjusted width
+                    // Placeholder: In a real app, you might use renderCell to wrap a custom MUI component
                 },
                 {
                     field: 'action',
                     headerName: 'ACTION',
                     width: 270,
-                    sortable: false
+                    sortable: false,
+                    // Use renderCell to include MUI buttons for actions
+                    renderCell: (params) => (
+                        <Box>
+                            <MuiButton variant="contained" color="error" size="small">Delete</MuiButton>
+                        </Box>
+                    )
                 },
             ],
-            // Define rows for DataGrid
-            rows: [] 
-            // The old 'data' object in render() is no longer needed
-            // --- END KEY CHANGE ---
+            // Dummy DataGrid Rows (replace with API data)
+            rows: [
+                { id: 1, words: 'offer' },
+                { id: 2, words: 'discount' },
+                { id: 3, words: 'free gift' },
+            ] 
         };
         this.onCheckboxBtnClick = this.onCheckboxBtnClick.bind(this);
+        this.handleWordInputChange = this.handleWordInputChange.bind(this);
+        this.handleAddWord = this.handleAddWord.bind(this);
     }
 
     componentDidMount() {
         this.props.activateAuthLayout();
+        // Placeholder for API call to load spam words
     }
 
+    // Retained original function (not visible in the MUI render, but kept for completeness)
     onCheckboxBtnClick(selected) {
         const index = this.state.cSelected.indexOf(selected);
         if (index < 0) {
@@ -56,91 +77,106 @@ class SpamWords extends Component {
         this.setState({ cSelected: [...this.state.cSelected] });
     }
 
+    // Input Handler for the new spam word
+    handleWordInputChange = (e) => {
+        this.setState({ spamWordInput: e.target.value });
+    }
+
+    // Form Submission Handler
+    handleAddWord = (e) => {
+        e.preventDefault();
+        const newWord = this.state.spamWordInput.trim();
+        if (newWord) {
+            this.setState({ isAdding: true });
+            
+            // --- Placeholder for API call to add word ---
+            console.log("Adding new spam word:", newWord);
+            
+            setTimeout(() => {
+                const newId = this.state.rows.length + 1;
+                const newRow = { id: newId, words: newWord };
+                this.setState(prevState => ({
+                    rows: [...prevState.rows, newRow],
+                    spamWordInput: '', // Clear input
+                    isAdding: false
+                }));
+            }, 1000);
+            // --- End Placeholder ---
+        } else {
+            console.error("Please enter a word.");
+        }
+    }
     
-    //Select 
+    // Select Handler (retained signature for potential use)
     handleSelectGroup = (selectedGroup) => {
         this.setState({ selectedGroup });
     }
 
     render() {
-
-        // --- KEY CHANGE (DATAGRID) ---
-        // The old 'data' constant was removed from the render method
-        // and its 'columns' and 'rows' were moved to the state.
-        // --- END KEY CHANGE ---
+        const { spamWordInput, rows, columns, isAdding } = this.state;
 
         return (
-            <React.Fragment>
-                <Container fluid>
-                    {/* ... (Header/Title Row and Form Column remain unchanged) ... */}
-                    <div className="page-title-box">
-                        <Row className="align-items-center">
-                            <Col sm="6">
-                                <h4 className="page-title">SPAM WORDS</h4>
-                            </Col>
-                        </Row>
-                    </div>
+            <Box sx={{ p: 3 }}>
+                <Box className="page-title-box" sx={{ mb: 3 }}>
+                    <Typography variant="h4">SPAM WORDS</Typography>
+                </Box>
 
-                    <Row>
-                        <Col sm="12" lg="5">
-                            <Card>
-                                <CardBody>
-                                    <h5 className="mt-0 header-title">ADD NEW WORD</h5>
+                <Grid container spacing={3}>
+                    {/* LEFT COLUMN: ADD NEW WORD (5/12) */}
+                    <Grid item xs={12} lg={5}>
+                        <Paper elevation={1} sx={{ p: 3, height: '100%' }}>
+                            <Typography variant="h6" sx={{ mb: 2 }}>ADD NEW WORD</Typography>
 
-                                    <FormControl>
-                                        <FormGroup>
-                                            <AvField name="spam_words" label="SPAM WORDS"
-                                            type="text"  
-                                            validate={{ required: { value: true } }} />
-                                        </FormGroup>
+                            <Box component="form" onSubmit={this.handleAddWord} noValidate>
+                                
+                                {/* Spam Word Input (MUI TextField replaces AvField) */}
+                                <TextField
+                                    name="spam_words"
+                                    label="SPAM WORDS"
+                                    type="text"
+                                    fullWidth
+                                    required
+                                    margin="normal"
+                                    value={spamWordInput}
+                                    onChange={this.handleWordInputChange}
+                                />
 
-                                        <FormGroup className="mb-0">
-                                            <div>
-                                                <Button type="submit" color="success" className="mr-1">
-                                                    <i className="ti ti-plus mr-2"></i> Add
-                                                </Button>
-                                            </div>
-                               
-                                       </FormGroup>
+                                {/* Submission Button */}
+                                <Box sx={{ mt: 3, display: 'flex', gap: 1 }}>
+                                    <MuiButton 
+                                        type="submit" 
+                                        variant="contained" 
+                                        color="success" 
+                                        sx={{ mr: 1 }}
+                                        startIcon={<AddIcon />}
+                                        disabled={isAdding}
+                                    >
+                                        {isAdding ? 'Adding...' : 'Add'}
+                                    </MuiButton>
+                                </Box>
+                            </Box>
+                        </Paper>
+                    </Grid>
 
-                                    </FormControl>
+                    {/* RIGHT COLUMN: SPAM WORDS LIST (7/12) */}
+                    <Grid item xs={12} lg={7}>
+                        <Paper elevation={1} sx={{ p: 3 }}>
+                            <Typography variant="h6" sx={{ mb: 2 }}>SPAM WORDS LIST</Typography>
 
-                                </CardBody>
-                            </Card>
-                        </Col>
-
-                        <Col sm="12" lg="7">
-                            <Card>
-                                <CardBody>
-                                    <h4 className="mt-0 header-title">SPAM WORDS</h4>
-
-                                    {/* --- KEY CHANGE (MDBDATATABLE REPLACEMENT) --- */}
-                                    {/* <MDBDataTable
-                                        responsive
-                                        striped
-                                        data={data}
-                                    /> */}
-                                    <Box sx={{ height: 400, width: '100%' }}>
-                                        <DataGrid
-                                            rows={this.state.rows}
-                                            columns={this.state.columns}
-                                            pageSize={5}
-                                            rowsPerPageOptions={[5]}
-                                            disableSelectionOnClick
-                                            // DataGrid needs a unique 'id' field for each row.
-                                            // When you load data, you must provide a unique 'id'
-                                            // or use getRowId to point to a unique field (like 'words').
-                                            getRowId={(row) => row.words} 
-                                        />
-                                    </Box>
-                                    {/* --- END KEY CHANGE --- */}
-                                </CardBody>
-                            </Card>
-                        </Col>
-                    </Row>
-
-                </Container>
-            </React.Fragment>
+                            <Box sx={{ height: 400, width: '100%' }}>
+                                <DataGrid
+                                    rows={rows}
+                                    columns={columns}
+                                    pageSizeOptions={[5, 10, 20]}
+                                    initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
+                                    getRowId={(row) => row.words} // Using 'words' as ID since 'sl' isn't explicitly mapped in the data load logic here
+                                    disableRowSelectionOnClick
+                                />
+                            </Box>
+                        </Paper>
+                    </Grid>
+                </Grid>
+            </Box>
         );
     }
 }

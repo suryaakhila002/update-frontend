@@ -1,13 +1,20 @@
 import React, { Component } from 'react';
-import { Col, Row, Card } from 'reactstrap';
-import { Link} from 'react-router-dom';
-
-import { Button } from 'antd';
-import { openSnack } from '../../store/actions';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { openSnack } from '../../store/actions';
 import ForgotPasswordAnim from '../../components/Loading/ForgotPasswordAnim';
 import Axios from 'axios';
-import { FormControl } from '@mui/material';
+
+// --- MUI & Core Imports ---
+import { 
+    Box, 
+    Grid, 
+    Paper, 
+    Typography, 
+    TextField, 
+    Button as MuiButton 
+} from '@mui/material';
+// --- END MUI Imports ---
 
 class ForgotPassword extends Component {
 
@@ -16,22 +23,38 @@ class ForgotPassword extends Component {
         this.state = { 
             loading: false,
             isSending: false,
+            otpSent: false, // Tracks if OTP has been sent
+            username: '',
+            phone: '',
+            otp: '',
+            newPassword: '',
+            confirmPassword: '',
         }
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.resetPassword = this.resetPassword.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this); // Send OTP
+        this.resetPassword = this.resetPassword.bind(this); // Reset Password
+        this.handleInputChange = this.handleInputChange.bind(this);
     }
 
-    componentDidMount(){
-        //add login background image class
-        // document.body.classList.add('login-bg');
-    }
+    handleInputChange = e => {
+        const { name, value } = e.target;
+        this.setState({ [name]: value });
+    };
 
-    handleSubmit(event, values) {
+    // Handler to initiate the OTP sending process
+    handleSubmit(event) {
+        event.preventDefault();
+        const { phone, username } = this.state;
+        
+        if (!username.trim() || !phone.trim()) {
+            this.props.openSnack({type: 'error', message: 'Username and Phone are required.'});
+            return;
+        }
+
         this.setState({isSending: true});
-
+        
         let raw = {
-            phone: values.phone,
-            userName: values.username,
+            phone: phone,
+            userName: username,
         }
 
         Axios.post('http://165.232.177.52:8090/auth/password/forgot', raw)
@@ -42,25 +65,37 @@ class ForgotPassword extends Component {
                 return;
             }
 
-            this.props.openSnack({type: 'success', message: 'OTP sent to the registered mobilr no.'})
+            this.props.openSnack({type: 'success', message: 'OTP sent to the registered mobile no.'})
             this.setState({otpSent: true, isSending: false})
-            console.log(res.data)
         })
         .catch(e=>{
-            console.log(e)
             this.setState({isSending: false})
-            this.props.openSnack({type: 'error', message: 'Invalid Credentials.'})
+            this.props.openSnack({type: 'error', message: 'Invalid Credentials or server error.'})
         })
     }
 
-    resetPassword(event, values) {
+    // Handler to perform the final password reset
+    resetPassword(event) {
+        event.preventDefault();
+        const { phone, username, otp, newPassword, confirmPassword } = this.state;
+        
+        if (!otp.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+            this.props.openSnack({type: 'error', message: 'Please fill all password reset fields.'});
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+             this.props.openSnack({type: 'error', message: 'New passwords must match.'});
+             return;
+        }
+
         this.setState({isSending: true});
 
         let raw = {
-            phone: values.phone,
-            userName: values.username,
-            newPassword: values.confirmPassword,
-            otp: values.otp,
+            phone: phone,
+            userName: username,
+            newPassword: confirmPassword, 
+            otp: otp,
         }
 
         Axios.post('http://165.232.177.52:8090/auth/password/change/by_otp', raw)
@@ -72,97 +107,162 @@ class ForgotPassword extends Component {
             }
 
             this.setState({isSending: false});
-            this.props.openSnack({type: 'success', message: 'Password Changes successfully!'});
+            this.props.openSnack({type: 'success', message: 'Password changed successfully!'});
             setTimeout(()=>{
                 this.props.history.push('/login')
             },2000)
         })
         .catch(e=>{
             this.setState({isSending: false})
-            console.log(e)
             this.props.openSnack({type: 'error', message: 'Unable to change password.'})
         })
     }
 
     render() {
+        const { otpSent, isSending } = this.state;
+        
+        // Determine which handler to use for form submission
+        const currentHandler = otpSent ? this.resetPassword : this.handleSubmit;
 
         return (
-            <React.Fragment>
+            <Box sx={{backgroundColor: '#f9f9f9', minHeight: '100vh', display: 'flex', flexDirection: 'column'}}>
+                <Grid container>
+                    {/* Left Side: Animation */}
+                    <Grid item xs={12} md={7} sx={{ display: { xs: 'none', md: 'block' } }}>
+                        <Box sx={{ p: 4, pt: 8 }}>
+                            <ForgotPasswordAnim />
+                        </Box>
+                    </Grid>
 
-                <div className="container-fluid p-0" style={{backgroundColor: '#f9f9f9'}}>
+                    {/* Right Side: Form */}
+                    <Grid item xs={12} md={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Typography variant="h4" component="h3" sx={{ mt: { xs: 4, md: 8 }, mb: 2, ml: 2, fontWeight: 'bold', alignSelf: 'flex-start' }}>
+                            Forgot Password
+                        </Typography>
 
-                    <div className="row">
-                        <div className="col-sm-12 col-md-7 hide-sm">
-                            <div>
-                                <ForgotPasswordAnim />
-                                {/* <img style={{maxWidth: '75%'}} alt="bg" src="/images/login.png" className="img-fluid" /> */}
-                            </div>
-                        </div>
-                        <div className="col-sm-12 col-md-4">
-                            <h3 style={{marginTop: '4rem',marginLeft: 16}}><b>Forgot Password</b></h3>
-
-                            <Card className="overflow-hidden account-card mx-3 mt-4">
-
-
-                                    <FormControl className="form-horizontal" onValidSubmit={(this.state.otpSent)?this.resetPassword:this.handleSubmit} >
-                                        
-                                        <div className="account-card-content" style={{padding: '20px 20px 0px 20px'}}>
-                                            <AvField disabled={this.state.otpSent} name="username" label="Username" placeholder="Enter Username" type="text" required />
-                                            
-                                            <AvField disabled={this.state.otpSent} name="phone" label="Phone" placeholder="Enter Phone No." required />
-
-                                            {this.state.otpSent && (
-                                                <><AvField name="otp" label="OTP" placeholder="Enter OTP" required />
-                                                <AvField name="new_password" label="New Password" placeholder="Enter New Password" type="password" required />
-                                                <AvField name="confirmPassword" label="Confirm Password" placeholder="Confirm Password" type="password" validate={{ required: { value: true }, match: { value: 'new_password' } }} /></>
-                                            )}
-                                        
-                                        </div>
-                                        <div className="p-4">
-
-                                            <Row className="">
-                                                <Col sm="12" className="text-right ">
-                                                    <Button style={{height: 45}} loading={this.state.isSending} disabled={this.state.isSending} type="primary" block htmlType="submit">{(!this.state.isSending)?'Continue':'Please Wait...'}</Button>
-                                                </Col>
-                                            </Row>
-
-                                            <Row className="">
-                                                <Col md="12" className="text-center mt-2">
-                                                    <Link to="/login"><i className="mdi mdi-lock"></i> Login?</Link>
-                                                </Col>
-                                            </Row>
-                                        </div>
-                                        
-                                    </FormControl>
+                        <Paper elevation={4} sx={{ width: '90%', maxWidth: 400, mx: 2, mt: 2 }}>
+                            
+                            <Box component="form" onSubmit={currentHandler} noValidate>
                                 
-                            </Card>
-                        </div>
-                    </div>
+                                <Box sx={{ p: '20px 20px 0px 20px' }}>
+                                    {/* Username Field */}
+                                    <TextField 
+                                        name="username" 
+                                        label="Username" 
+                                        placeholder="Enter Username" 
+                                        type="text" 
+                                        fullWidth 
+                                        required 
+                                        margin="normal"
+                                        value={this.state.username}
+                                        onChange={this.handleInputChange}
+                                        disabled={otpSent || isSending}
+                                        size="small"
+                                    />
+                                    
+                                    {/* Phone Field */}
+                                    <TextField 
+                                        name="phone" 
+                                        label="Phone" 
+                                        placeholder="Enter Phone No." 
+                                        type="tel" 
+                                        fullWidth 
+                                        required 
+                                        margin="normal"
+                                        value={this.state.phone}
+                                        onChange={this.handleInputChange}
+                                        disabled={otpSent || isSending}
+                                        size="small"
+                                    />
 
+                                    {/* Conditional Fields (OTP, New Password) */}
+                                    {otpSent && (
+                                        <>
+                                            {/* OTP Field */}
+                                            <TextField 
+                                                name="otp" 
+                                                label="OTP" 
+                                                placeholder="Enter OTP" 
+                                                type="number" 
+                                                fullWidth 
+                                                required 
+                                                margin="normal"
+                                                value={this.state.otp}
+                                                onChange={this.handleInputChange}
+                                                disabled={isSending}
+                                                size="small"
+                                            />
+                                            {/* New Password Field */}
+                                            <TextField 
+                                                name="newPassword" 
+                                                label="New Password" 
+                                                placeholder="Enter New Password" 
+                                                type="password" 
+                                                fullWidth 
+                                                required 
+                                                margin="normal"
+                                                value={this.state.newPassword}
+                                                onChange={this.handleInputChange}
+                                                disabled={isSending}
+                                                size="small"
+                                            />
+                                            {/* Confirm Password Field */}
+                                            <TextField 
+                                                name="confirmPassword" 
+                                                label="Confirm Password" 
+                                                placeholder="Confirm Password" 
+                                                type="password" 
+                                                fullWidth 
+                                                required 
+                                                margin="normal"
+                                                value={this.state.confirmPassword}
+                                                onChange={this.handleInputChange}
+                                                disabled={isSending}
+                                                size="small"
+                                            />
+                                        </>
+                                    )}
+                                </Box>
+                                
+                                {/* Action Buttons */}
+                                <Box sx={{ p: 4 }}>
+                                    <MuiButton 
+                                        style={{ height: 45 }} 
+                                        variant="contained" 
+                                        color="primary" 
+                                        type="submit" 
+                                        fullWidth
+                                        disabled={isSending}
+                                    >
+                                        {isSending ? 'Please Wait...' : (otpSent ? 'Reset Password' : 'Continue')}
+                                    </MuiButton>
 
-                    <div style={{backgroundColor: 'rgb(19 96 239)'}} class="py-11 position-relative" data-bg-img="/images/bg/03.png">
-                        <div class="shape-1" style={{height: 150, overflow: 'hidden'}}>
-                            <svg viewBox="0 0 500 150" preserveAspectRatio="none" style={{height: '100%', width: '100%'}}><path d="M0.00,49.98 C150.00,150.00 271.49,-50.00 500.00,49.98 L500.00,0.00 L0.00,0.00 Z" style={{stroke: 'none', fill: '#f9f9f9'}}></path></svg>
-                        </div>
-                    </div>
+                                    <Box sx={{ textAlign: 'center', mt: 2 }}>
+                                        <Link to="/login" style={{ color: '#007bff', textDecoration: 'none' }}>
+                                            <i className="mdi mdi-lock"></i> Login?
+                                        </Link>
+                                    </Box>
+                                </Box>
+                            </Box>
+                        </Paper>
+                    </Grid>
+                </Grid>
 
-
-                    {/* <div className="m-t-40 text-center">
-                        <p>Don't have an account ? <Link to="/register" className="font-500 text-primary"> Signup now </Link> </p>
-                        <p>© {new Date().getFullYear()} Crafted with <i className="mdi mdi-heart text-danger"></i> by TechConductro</p>
-                    </div> */}
-
-                </div>
-            </React.Fragment>
+                {/* Footer Wave Shape */}
+                <Box sx={{ 
+                    mt: 'auto', 
+                    height: 150, 
+                    overflow: 'hidden', 
+                    position: 'relative',
+                    backgroundColor: 'rgb(19 96 239)' 
+                }}>
+                    <svg viewBox="0 0 500 150" preserveAspectRatio="none" style={{height: '100%', width: '100%'}}>
+                        <path d="M0.00,49.98 C150.00,150.00 271.49,-50.00 500.00,49.98 L500.00,0.00 L0.00,0.00 Z" style={{stroke: 'none', fill: '#f9f9f9'}}></path>
+                    </svg>
+                </Box>
+            </Box>
         );
     }
 }
 
-// const mapStatetoProps = state => {
-//     const { user, loginError, loading } = state.Login;
-//     return { user, loginError, loading };
-// }
-
 export default connect(null, { openSnack })(ForgotPassword);
-
-

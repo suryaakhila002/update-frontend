@@ -1,102 +1,167 @@
 import React, { Component } from 'react';
-import { Container, Row, Col, Card, CardBody, FormGroup, Button, Label } from 'reactstrap';
+// REMOVED: { Container, Row, Col, Card, CardBody, FormGroup, Label, Button } from 'reactstrap';
 import { activateAuthLayout } from '../../store/actions';
-
-// import { withRouter } from 'react-router-dom';
+import Select from 'react-select'; // Retained for external select handling
 import { connect } from 'react-redux';
-import Select from 'react-select';
 
+// --- MUI & Core Imports ---
+import { 
+    Box, 
+    Grid, 
+    Paper, 
+    Typography, 
+    TextField, 
+    Button as MuiButton, 
+    InputLabel, 
+    FormGroup,
+} from '@mui/material';
+import SaveIcon from '@mui/icons-material/Save';
+// --- END MUI Imports ---
+
+// Mock Constants (Replaced reactstrap options structure)
 const BOOLEAN_SELECT = [
-    {
-        options: [
-            { label: "Yes", value: "Yes" },
-            { label: "No", value: "No" }
-        ]
-    }
+    { label: "Yes", value: "Yes" },
+    { label: "No", value: "No" }
 ];
 
 class KeywoardsSetting extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            selectedGroup: null, 
-            selectedMulti: null,
+            selectedShowInClient: BOOLEAN_SELECT[0], 
+            optInKeywords: '',
+            optOutKeywords: '',
+            customGatewaySuccess: '',
+            isSaving: false,
         };
+        this.handleSelectChange = this.handleSelectChange.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     componentDidMount() {
         this.props.activateAuthLayout();
+        // Placeholder to load initial settings data
     }
 
-    //Select 
-    handleSelectGroup = (selectedGroup) => {
-        this.setState({ selectedGroup });
+    handleSelectChange = (name, selectedOption) => {
+        this.setState({ [name]: selectedOption });
+    }
+
+    handleInputChange = (e) => {
+        this.setState({ [e.target.name]: e.target.value });
+    }
+    
+    handleSubmit = (e) => {
+        e.preventDefault();
+        
+        // Validation logic placeholder
+        if (!this.state.selectedShowInClient) {
+            console.error("Validation Error: Please select 'Show In Client'.");
+            return;
+        }
+
+        this.setState({ isSaving: true });
+        // --- API Submission Placeholder ---
+        const payload = {
+            showInClient: this.state.selectedShowInClient.value,
+            optInKeywords: this.state.optInKeywords,
+            optOutKeywords: this.state.optOutKeywords,
+            customGatewaySuccess: this.state.customGatewaySuccess
+        };
+        console.log("Submitting keyword settings:", payload);
+
+        setTimeout(() => {
+            console.log("Settings updated successfully!");
+            this.setState({ isSaving: false });
+        }, 1500);
+        // --- End API Submission Placeholder ---
     }
 
     render() {
-        const { selectedGroup } = this.state;
+        const { selectedShowInClient, optInKeywords, optOutKeywords, customGatewaySuccess, isSaving } = this.state;
 
         return (
-            <React.Fragment>
-                <Container fluid>
-                    <div className="page-title-box">
-                        <Row className="align-items-center">
+            <Box sx={{ p: 3 }}>
+                <Box className="page-title-box" sx={{ mb: 3 }}>
+                    <Typography variant="h4">KEYWORD SETTINGS</Typography>
+                </Box>
 
-                            <Col sm="6">
-                                <h4 className="page-title">KEYWORD SETTINGS</h4>
-                            </Col>
-                        </Row>
-                    </div>
+                <Grid container spacing={3} justifyContent="center">
+                    <Grid item xs={12} lg={7}>
+                        <Paper elevation={1} sx={{ p: 3 }}>
+                            <Typography variant="h6" sx={{ mb: 3 }}>KEYWORD SETTINGS</Typography>
 
-                    <Row>
-                        <Col lg="7">
-                            <Card>
-                                <CardBody>
+                            <Box component="form" onSubmit={this.handleSubmit} noValidate>
+                                
+                                {/* SHOW IN CLIENT (react-select) */}
+                                <FormGroup sx={{ mb: 2 }}>
+                                    <InputLabel shrink sx={{ mb: 0.5 }}>SHOW IN CLIENT</InputLabel>
+                                    <Select
+                                        name="selectedShowInClient"
+                                        value={selectedShowInClient}
+                                        onChange={(opt) => this.handleSelectChange('selectedShowInClient', opt)}
+                                        options={BOOLEAN_SELECT}
+                                        placeholder="Select Option"
+                                    />
+                                </FormGroup>
 
-                                    <h4 className="mt-0 header-title">KEYWORD SETTINGS</h4>
+                                {/* OPT IN SMS KEYWORD (MUI TextField replaces AvField) */}
+                                <TextField
+                                    name="optInKeywords"
+                                    label="OPT IN SMS KEYWORD"
+                                    helperText="Insert keyword using comma (,)"
+                                    multiline
+                                    rows={3}
+                                    fullWidth
+                                    margin="normal"
+                                    value={optInKeywords}
+                                    onChange={this.handleInputChange}
+                                />
+                                
+                                {/* OPT OUT SMS KEYWORD (MUI TextField replaces AvField) */}
+                                <TextField
+                                    name="optOutKeywords"
+                                    label="OPT OUT SMS KEYWORD"
+                                    helperText="Insert keyword using comma (,)"
+                                    multiline
+                                    rows={3}
+                                    fullWidth
+                                    margin="normal"
+                                    value={optOutKeywords}
+                                    onChange={this.handleInputChange}
+                                />
+                                
+                                {/* CUSTOM GATEWAY SUCCESS RESPONSE STATUS (MUI TextField replaces AvField) */}
+                                <TextField
+                                    name="customGatewaySuccess"
+                                    label="CUSTOM GATEWAY SUCCESS RESPONSE STATUS"
+                                    helperText="Insert keyword using comma (,)"
+                                    multiline
+                                    rows={3}
+                                    fullWidth
+                                    margin="normal"
+                                    value={customGatewaySuccess}
+                                    onChange={this.handleInputChange}
+                                />
 
-                                    <FormControl>
-                                        <Label>SHOW IN CLIENT</Label>
-                                        <Select
-                                            className="mb-3"
-                                            value={selectedGroup}
-                                            onChange={this.handleSelectGroup}
-                                            options={BOOLEAN_SELECT}
-                                        />
-                                        
-                                        <Label>OPT IN SMS KEYWORD <small>Insert keyword using comma (,)</small></Label>
-                                        <AvField name="opt_in_sms_keyword" 
-                                            rows={3} type="textarea"
-                                            validate={{ required: { value: false } }} />
-                                        
-                                        <Label>OPT OUT SMS KEYWORD <small>Insert keyword using comma (,)</small></Label>
-                                        <AvField name="opt_out_sms_keyword" 
-                                            rows={3} type="textarea"
-                                            validate={{ required: { value: false } }} />
-                                        
-                                        <Label>CUSTOM GATEWAY SUCCESS RESPONSE STATUS <small>Insert keyword using comma (,)</small></Label>
-                                        <AvField name="custom_gateway_success_response_status" 
-                                            rows={3} type="textarea"
-                                            validate={{ required: { value: false } }} />
-
-                                        <FormGroup className="mb-0">
-                                            <div>
-                                                <Button type="submit" color="success" className="mr-1">
-                                                    Update
-                                                </Button>
-                                            </div>
-                                        </FormGroup>
-
-                                    </FormControl>
-
-                                </CardBody>
-                            </Card>
-                        </Col>
-
-                    </Row>
-
-                </Container>
-            </React.Fragment>
+                                {/* Submission Button (MUI Button replaces reactstrap Button) */}
+                                <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-start' }}>
+                                    <MuiButton 
+                                        type="submit" 
+                                        variant="contained" 
+                                        color="success" 
+                                        startIcon={<SaveIcon />}
+                                        disabled={isSaving}
+                                    >
+                                        {isSaving ? 'Updating...' : 'Update'}
+                                    </MuiButton>
+                                </Box>
+                            </Box>
+                        </Paper>
+                    </Grid>
+                </Grid>
+            </Box>
         );
     }
 }

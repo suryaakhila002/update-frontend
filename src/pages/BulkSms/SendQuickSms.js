@@ -18,7 +18,6 @@ import NoBalance from '../../components/Loading/NoBalance';
 import SmsSending from '../../components/Loading/SmsSending';
 // import Fab from '@mui/material/Fab';
 // import AddIcon from '@material-ui/icons/Add';
-// import { AvField } from 'availity-reactstrap-validation';
 // import SpeakerNotesOutlinedIcon from '@material-ui/icons/SpeakerNotesOutlined';
 import MyTemplates from '../../components/MyTemplates';
 import TemplateMessageBox from '../../components/LanguageTransliterate/TemplateMessageBox';

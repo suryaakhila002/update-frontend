@@ -1,10 +1,19 @@
 import React, { Component } from 'react';
-import { Container, Row, Col, Card, CardBody, FormGroup, Label, Button } from 'reactstrap';
+// REMOVED: reactstrap imports
 import { activateAuthLayout } from '../../store/actions';
 import Select from 'react-select';
-// import {  withRouter } from 'react-router-dom';
-
 import { connect } from 'react-redux';
+import { 
+    Box, 
+    Grid, 
+    Paper, 
+    Typography, 
+    Button as MuiButton, 
+    InputLabel, 
+    TextField, 
+    Checkbox, 
+    FormControlLabel 
+} from '@mui/material';
 
 const CLIENT_GROUP_STATUS = [
     {
@@ -30,139 +39,204 @@ class ClientExportImport extends Component {
         super(props);
         this.state = {
             selectedGroup: null, 
-            selectedMulti: null,
+            clientGroupStatus: CLIENT_GROUP_STATUS[0].options[0].value,
+            smsGateway: SELECT_BOOLEAN[0].options[0].value,
+            resellerPanel: SELECT_BOOLEAN[0].options[0].value,
+            apiAccess: SELECT_BOOLEAN[0].options[0].value,
+            importFile: null,
+            firstRowAsHeader: false,
+            isImporting: false,
         };
+        this.handleSelectChange = this.handleSelectChange.bind(this);
+        this.handleFileChange = this.handleFileChange.bind(this);
+        this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
+        this.handleImportSubmit = this.handleImportSubmit.bind(this);
     }
 
     componentDidMount() {
         this.props.activateAuthLayout();
     }
     
-    //Select 
-    handleSelectGroup = (selectedGroup) => {
-        this.setState({ selectedGroup });
+    // Select Handler for react-select
+    handleSelectChange(name, selectedOption) {
+        this.setState({ [name]: selectedOption.value });
+    }
+
+    handleFileChange(e) {
+        this.setState({ importFile: e.target.files[0] });
+    }
+
+    handleCheckboxChange(e) {
+        this.setState({ [e.target.name]: e.target.checked });
+    }
+
+    handleImportSubmit(e) {
+        e.preventDefault();
+        
+        if (!this.state.importFile) {
+            alert("Please select a file to import.");
+            return;
+        }
+
+        this.setState({ isImporting: true });
+
+        // Simulate API call and redirect/alert
+        console.log("Importing file:", this.state.importFile.name);
+        console.log("Settings:", this.state);
+
+        setTimeout(() => {
+            alert(`Import simulation complete for ${this.state.importFile.name}.`);
+            this.setState({ isImporting: false, importFile: null });
+        }, 2000);
     }
 
     render() {
-
-        const { selectedGroup } = this.state;
+        const { clientGroupStatus, smsGateway, resellerPanel, apiAccess, importFile, firstRowAsHeader, isImporting } = this.state;
 
         return (
-            <React.Fragment>
-                <Container fluid>
-                    <div className="page-title-box">
-                        <Row className="align-items-center">
-                            <Col sm="6">
-                                <h4 className="page-title">EXPORT AND IMPORT CLIENTS</h4>
-                            </Col>
-                        </Row>
-                    </div>
+            <Box sx={{ p: 3 }}>
+                <Box className="page-title-box" sx={{ mb: 3 }}>
+                    <Typography variant="h4">EXPORT AND IMPORT CLIENTS</Typography>
+                </Box>
 
-                    <Row>
-                        <Col sm="12" lg="4">
-                            <Card>
-                                <CardBody>
+                <Grid container spacing={3}>
+                    {/* Export Section (left column) */}
+                    <Grid item xs={12} lg={4}>
+                        <Paper elevation={1} sx={{ p: 3, height: '100%' }}>
+                            <Box sx={{ mb: 3 }}>
+                                <Grid container alignItems="center" spacing={1}>
+                                    <Grid item xs={12} md={4}>
+                                        <Typography variant="body2" color="textSecondary">Export Clients :</Typography>
+                                    </Grid>
+                                    <Grid item xs={12} md={8}>
+                                        <MuiButton variant="contained" color="success" size="small" fullWidth={false}>
+                                            Export Clients as CSV
+                                        </MuiButton>
+                                    </Grid>
+                                </Grid>
+                            </Box>
 
-                                    <Row>
-                                        <Col sm="12" md="4">
-                                            <small>Export Clients : </small>
-                                        </Col>
-                                        <Col sm="12" md="8">
-                                            <Button type="submit" color="success" size="sm" className="waves-effect waves-light mr-1">
-                                                Export Clients as CSV 
-                                            </Button>
-                                        </Col>
-                                    </Row>
+                            <Box sx={{ mb: 2 }}>
+                                <Grid container alignItems="center" spacing={1}>
+                                    <Grid item xs={12} md={4}>
+                                        <Typography variant="body2" color="textSecondary">Sample File :</Typography>
+                                    </Grid>
+                                    <Grid item xs={12} md={8}>
+                                        <MuiButton variant="contained" color="primary" size="small" fullWidth={false}>
+                                            Download Sample File
+                                        </MuiButton>
+                                    </Grid>
+                                </Grid>
+                            </Box>
+                        </Paper>
+                    </Grid>
 
-                                    <Row className="mt-3">
-                                        <Col sm="12" md="4">
-                                            <small>Sample File : </small>
-                                        </Col>
-                                        <Col sm="12" md="8">
-                                            <Button type="submit" color="primary" size="sm" className="waves-effect waves-light mr-1">
-                                                Download Sample File 
-                                            </Button>
-                                        </Col>
-                                    </Row>
+                    {/* Import Section (right column) */}
+                    <Grid item xs={12} lg={8}>
+                        <Paper elevation={1} sx={{ p: 3 }}>
+                            <Typography variant="h6" sx={{ mb: 3 }}>IMPORT CLIENT</Typography>
 
-                                </CardBody>
-                            </Card>
-                        </Col>
+                            <Box component="form" onSubmit={this.handleImportSubmit} noValidate>
+                                
+                                {/* Client Group Status */}
+                                <Box sx={{ mb: 2 }}>
+                                    <InputLabel shrink sx={{ mb: 0.5 }}>CLIENT GROUP STATUS</InputLabel>
+                                    <Select
+                                        className="MuiSelect-root-full-width"
+                                        name="clientGroupStatus"
+                                        value={clientGroupStatus}
+                                        onChange={(opt) => this.handleSelectChange('clientGroupStatus', opt)}
+                                        options={CLIENT_GROUP_STATUS}
+                                    />
+                                </Box>
 
-                        <Col sm="12" lg="8">
-                            <Card>
-                                <CardBody>
-                                    <h4 className="mt-0 header-title">IMPORT CLIENT</h4>
+                                {/* SMS GATEWAY */}
+                                <Box sx={{ mb: 2 }}>
+                                    <InputLabel shrink sx={{ mb: 0.5 }}>SMS GATEWAY</InputLabel>
+                                    <Select
+                                        className="MuiSelect-root-full-width"
+                                        name="smsGateway"
+                                        value={smsGateway}
+                                        onChange={(opt) => this.handleSelectChange('smsGateway', opt)}
+                                        options={SELECT_BOOLEAN}
+                                    />
+                                </Box>
 
-                                    <FormControl>
+                                {/* RESELLER PANEL */}
+                                <Box sx={{ mb: 2 }}>
+                                    <InputLabel shrink sx={{ mb: 0.5 }}>RESELLER PANEL</InputLabel>
+                                    <Select
+                                        className="MuiSelect-root-full-width"
+                                        name="resellerPanel"
+                                        value={resellerPanel}
+                                        onChange={(opt) => this.handleSelectChange('resellerPanel', opt)}
+                                        options={SELECT_BOOLEAN}
+                                    />
+                                </Box>
 
-                                        <FormGroup>
-                                            <Label>CLIENT GROUP</Label>
-                                            <Select
-                                                label="CLIENT GROUP"
-                                                value={selectedGroup}
-                                                onChange={this.handleSelectGroup}
-                                                options={CLIENT_GROUP_STATUS}
+                                {/* API ACCESS */}
+                                <Box sx={{ mb: 2 }}>
+                                    <InputLabel shrink sx={{ mb: 0.5 }}>API ACCESS</InputLabel>
+                                    <Select
+                                        className="MuiSelect-root-full-width"
+                                        name="apiAccess"
+                                        value={apiAccess}
+                                        onChange={(opt) => this.handleSelectChange('apiAccess', opt)}
+                                        options={SELECT_BOOLEAN}
+                                    />
+                                </Box>
+
+                                <Box sx={{ mb: 2 }}>
+                                    <InputLabel shrink sx={{ mb: 0.5 }}>IMPORT FILE *</InputLabel>
+                                    <TextField
+                                        name="importFile"
+                                        type="file"
+                                        fullWidth
+                                        required
+                                        variant="outlined"
+                                        size="small"
+                                        onChange={this.handleFileChange}
+                                        InputLabelProps={{ shrink: true }}
+                                        inputProps={{ accept: ".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" }}
+                                    />
+                                    {importFile && (
+                                        <Typography variant="caption" color="textPrimary">Selected: {importFile.name}</Typography>
+                                    )}
+                                </Box>
+
+                                <Box sx={{ mb: 2 }}>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                name="firstRowAsHeader"
+                                                checked={firstRowAsHeader}
+                                                onChange={this.handleCheckboxChange}
+                                                color="primary"
                                             />
-                                        </FormGroup>
+                                        }
+                                        label="FIRST ROW AS HEADER"
+                                    />
+                                </Box>
+                                
+                                <Typography variant="body2" color="primary" sx={{ mb: 2 }}>
+                                    IT WILL TAKE FEW MINUTES. PLEASE DO NOT RELOAD THE PAGE
+                                </Typography>
 
-                                        <FormGroup>
-                                            <Label>SMS GATEWAY </Label>
-                                            <Select
-                                                label="SMS GATEWAY "
-                                                value={selectedGroup}
-                                                onChange={this.handleSelectGroup}
-                                                options={SELECT_BOOLEAN}
-                                            />
-                                        </FormGroup>
-
-                                        <FormGroup>
-                                            <Label>RESELLER PANEL</Label>
-                                            <Select
-                                                label="RESELLER PANEL"
-                                                value={selectedGroup}
-                                                onChange={this.handleSelectGroup}
-                                                options={SELECT_BOOLEAN}
-                                            />
-                                        </FormGroup>
-
-                                        <FormGroup>
-                                            <Label>API ACCESS</Label>
-                                            <Select
-                                                label="API ACCESS"
-                                                value={selectedGroup}
-                                                onChange={this.handleSelectGroup}
-                                                options={SELECT_BOOLEAN}
-                                            />
-                                        </FormGroup>
-
-                                        <AvField name="import_file" label="IMPORT FILE"
-                                            type="file" errorMessage="Enter Group Name"
-                                            validate={{ required: { value: true } }} />
-
-                                        <AvField name="form_as_header" label="FIRST ROW AS HEADER"
-                                            type="checkbox" 
-                                            validate={{ required: { value: false } }} />
-
-                                        <p className="text-primary">IT WILL TAKE FEW MINUTES. PLEASE DO NOT RELOAD THE PAGE</p>
-
-
-                                        <FormGroup className="mb-0">
-                                            <div>
-                                                <Button type="submit" color="primary" className="btn-block waves-effect waves-light mr-1">
-                                                    Import
-                                                </Button>
-                                            </div>
-                                        </FormGroup>
-
-                                    </FormControl>                                
-                                </CardBody>
-                            </Card>
-                        </Col>
-                    </Row>
-
-                </Container>
-            </React.Fragment>
+                                {/* Submission Button */}
+                                <MuiButton 
+                                    type="submit" 
+                                    variant="contained" 
+                                    color="primary" 
+                                    disabled={isImporting || !importFile}
+                                    fullWidth
+                                >
+                                    {isImporting ? 'Importing...' : 'Import'}
+                                </MuiButton>
+                            </Box>
+                        </Paper>
+                    </Grid>
+                </Grid>
+            </Box>
         );
     }
 }

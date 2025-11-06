@@ -105,7 +105,7 @@ class Login extends Component { // Renamed from Pageslogin
         const { loading } = this.state;
 
         return (
-            <Box sx={{backgroundColor: '#f9f9f9', minHeight: '100vh', display: 'flex', flexDirection: 'column'}}>
+            <Box sx={{backgroundColor: '', minHeight: '100vh', display: 'flex', flexDirection: 'column'}}>
                 <Grid container sx={{ flexGrow: 1 }}>
                     {/* Left Side: Illustration */}
                     <Grid item xs={12} md={7} sx={{ display: { xs: 'none', md: 'block' } }}>

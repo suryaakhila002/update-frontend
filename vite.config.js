@@ -16,6 +16,14 @@ export default defineConfig({
     react(),
   ],
 
+  css: {
+    preprocessorOptions: {
+      scss: {
+        quietDeps: true,
+      },
+    },
+  },
+
   optimizeDeps: {
     force: true,
     esbuildOptions: {
